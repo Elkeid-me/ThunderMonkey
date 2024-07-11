@@ -1,0 +1,161 @@
+// Copyright (C) 2024 一梦全能 team
+//
+// This file is part of ThunderMonkey.
+//
+// ThunderMonkey is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// ThunderMonkey is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
+
+/// # sysy.pest
+///
+/// 用于不包含注释的 sysy 的解析器。注释由单独的预处理器负责。
+///
+/// `translation_unit`（翻译单元）为语法的根。
+
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+translation_unit = _{ SOI ~ global_item+ ~ EOI }
+
+identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+global_item = _{ all_definitions | func_decl ~ ";" | func_def }
+
+func_def          =  { func_decl ~ block }
+func_decl         =  { function_return_type ~ identifier ~ "(" ~ parameter_list ~ ")" }
+parameter_list    =  { parameter_def ~ ("," ~ parameter_def)* | "void" | "" }
+parameter_def     = _{ ptr_parameter | var_parameter | ptr_parameter_no_name | var_parameter_no_name }
+
+ptr_parameter         =  { non_void_type ~ identifier ~ "[" ~ "]" ~ array_lengths? }
+var_parameter         =  { non_void_type ~ identifier }
+ptr_parameter_no_name =  { non_void_type ~ "[" ~ "]" ~ array_lengths? }
+var_parameter_no_name =  { non_void_type }
+
+int_keyword      = @{ "int" ~ !(ASCII_ALPHANUMERIC | "_") }
+float_keyword    = @{ "float" ~ !(ASCII_ALPHANUMERIC | "_") }
+void_keyword     = @{ "void" ~ !(ASCII_ALPHANUMERIC | "_") }
+const_keyword    = @{ "const" ~ !(ASCII_ALPHANUMERIC | "_")}
+return_keyword   = @{ "return" ~ !(ASCII_ALPHANUMERIC | "_") }
+continue_keyword = @{ "continue" ~ !(ASCII_ALPHANUMERIC | "_") }
+break_keyword    = @{ "break" ~ !(ASCII_ALPHANUMERIC | "_") }
+
+type          = { int_keyword | float_keyword | void_keyword }
+non_void_type = { int_keyword | float_keyword }
+
+const_definition_type = _{ (const_keyword ~ non_void_type) | (non_void_type ~ const_keyword) }
+
+function_return_type = _{ type | void_keyword }
+
+const_definitions         =  { const_definition_type ~ const_definition ~ ("," ~ const_definition)* }
+const_definition          =  { const_array_definition | const_variable_definition }
+const_variable_definition =  { identifier ~ "=" ~ expression }
+const_array_definition    =  { identifier ~ array_lengths ~ "=" ~ initializer_list }
+
+definitions         = _{ non_void_type ~ definition ~ ("," ~ definition)* }
+definition          = _{ array_definition | variable_definition }
+variable_definition =  { identifier ~ ("=" ~ expression)? }
+array_definition    =  { identifier ~ array_lengths ~ ("=" ~ initializer_list)? }
+
+array_lengths = _{ array_subscript }
+
+initializer_list      =  { "{" ~ (initializer_list_item ~ ("," ~ initializer_list_item)*)? ~ "}" }
+initializer_list_item = _{ initializer_list | expression}
+
+primary = _{ integer_hex | integer_bin | integer_oct | integer_dec | function_call | array_element | identifier | "(" ~ expression ~ ")" }
+atom    = _{ prefix_operator* ~ primary ~ postfix_operator* }
+
+postfix_operator      = _{ post_inc | post_dec }
+post_inc              =  { "++" }
+post_dec              =  { "--" }
+
+prefix_operator = _{ pre_inc | pre_dec | logic_not | negative | positive | bit_not }
+pre_inc         =  { "++" }
+pre_dec         =  { "--" }
+logic_not       =  { "!" }
+negative        =  { "-" }
+positive        =  { "+" }
+bit_not         =  { "~" }
+
+infix  = _{ custom | three_char_operator | two_char_operator | single_char_operator }
+custom = ${ "~" ~ identifier ~ "~" }
+
+single_char_operator = _{ mul | div | modu | add | sub | xor | and | or | grt | les | assignment }
+two_char_operator    = _{ logic_and | logic_or | shl | sar | eq | neq | geq | leq
+                          | add_assign | sub_assign | mul_assign | div_assign
+                          | mod_assign | and_assign | or_assign | xor_assign }
+three_char_operator  = _{ sar_assign | shl_assign }
+
+mul  = { "*" }
+div  = { "/" }
+modu = { "%" }
+add  = { "+" }
+sub  = { "-" }
+
+logic_and = { "&&" }
+logic_or  = { "||" }
+
+shl = { "<<" }
+sar = { ">>" }
+xor = { "^" }
+and = { "&" }
+or  = { "|" }
+
+eq  = { "==" }
+neq = { "!=" }
+grt = { ">" }
+geq = { ">=" }
+les = { "<" }
+leq = { "<=" }
+
+assignment = { "=" }
+add_assign = { "+=" }
+sub_assign = { "-=" }
+mul_assign = { "*=" }
+div_assign = { "/=" }
+mod_assign = { "%=" }
+and_assign = { "&=" }
+or_assign  = { "|=" }
+xor_assign = { "^=" }
+shl_assign = { "<<=" }
+sar_assign = { ">>=" }
+
+array_element   = { identifier ~ array_subscript }
+array_subscript = { ("[" ~ expression ~ "]")+ }
+
+expression    = { atom ~ (infix ~ atom)* }
+function_call = { identifier ~ "(" ~ argument_list? ~ ")" }
+argument_list = { expression ~ ("," ~ expression)* }
+
+return_statement = { return_keyword ~ expression? }
+while_statement  = { "while" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) }
+if_statement     = { "if" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) ~ ("else" ~ (non_block_block_item | block))? }
+
+integer_hex = @{ ("0x" | "0X") ~ ASCII_HEX_DIGIT+ }
+integer_dec = @{ ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* }
+// 同时解析八进制整数和 0
+integer_oct = @{ "0" ~ ASCII_OCT_DIGIT* }
+integer_bin = @{ ("0b" | "0B") ~ ASCII_BIN_DIGIT+ }
+
+
+// TODO: 还没加原子
+fractional_constant = { (ASCII_DIGIT* ~ "." ~ ASCII_DIGIT+) | (ASCII_DIGIT+ ~ ".") }
+floating_dec_exp = { ("e" | "E") ~ ("+" | "-")? ~ ASCII_DIGIT+ }
+floating_dec_1 = { fractional_constant ~ floating_dec_exp? }
+floating_dec_2 = { ASCII_DIGIT+ ~ floating_dec_exp }
+
+fractional_constant_hex = { (ASCII_HEX_DIGIT* ~ "." ~ ASCII_HEX_DIGIT+) | (ASCII_HEX_DIGIT+ ~ ".") }
+floating_hex_exp = { ("e" | "E") ~ ("+" | "-")? ~ ASCII_DIGIT+ }
+floating_hex_1 = { ("0x" | "0X") ~ fractional_constant_hex ~ floating_hex_exp }
+floating_hex_2 = { ("0x" | "0X") ~ ASCII_HEX_DIGIT+ ~ floating_hex_exp }
+
+block = { "{" ~ (block | non_block_block_item)* ~ "}" }
+
+statement            = _{ while_statement | if_statement | (continue_keyword | break_keyword | return_statement | expression | "") ~ ";"}
+all_definitions      = _{ (const_definitions | definitions) ~ ";" }
+non_block_block_item = _{ statement | all_definitions }
