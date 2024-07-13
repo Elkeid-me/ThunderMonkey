@@ -20,7 +20,6 @@ use std::collections::{HashMap, HashSet};
 
 pub type Handler = usize;
 
-#[derive(Debug)]
 pub struct Definition {
     pub init: Option<Init>,
     pub ty: Type,
@@ -29,27 +28,21 @@ pub struct Definition {
     pub is_arg: bool,
 }
 
-#[derive(Debug)]
 pub struct TranslationUnit {
     pub ast: Vec<Handler>,
     pub symbol_table: HashMap<Handler, Definition>,
 }
 
-/// # 初始化器
-/// - [`Init::Function`] 是二元组，前者为每个形参的重整化后名字，后者为函数体.
-/// - [`Init::Expr`]，表示这个变量使用一个表达式初始化，即这是一个整型变量.
-/// - [`Init::Const`]，表示这个变量使用一个整型常量初始化，即这是一个整型常量.
-/// - [`Init::ConstList`] 和 [`Init::List`] 同理.
-#[derive(Debug)]
 pub enum Init {
     Function { block: Block, is_entry: bool },
     Expr(Expr),
-    Const(i32),
+    ConstInt(i32),
+    ConstFloat(f32),
     List(InitList),
     ConstList(ConstInitList),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum InitListItem {
     InitList(Box<InitList>),
     Expr(Expr),
@@ -57,15 +50,15 @@ pub enum InitListItem {
 
 pub type InitList = Vec<InitListItem>;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum ConstInitListItem {
     ConstInitList(Box<ConstInitList>),
-    Num(i32),
+    Int(i32),
+    Float(f32),
 }
 
 pub type ConstInitList = Vec<ConstInitListItem>;
 
-#[derive(Debug)]
 pub enum Statement {
     Expr(Expr),
     If(Expr, Box<Block>, Box<Block>),
@@ -77,15 +70,14 @@ pub enum Statement {
 
 pub type Block = Vec<BlockItem>;
 
-#[derive(Debug)]
 pub enum BlockItem {
-    Def(Handler),
+    Def(Vec<Handler>),
     Block(Block),
     Statement(Statement),
 }
 
-#[derive(Debug, Clone)]
-pub enum Expr {
+#[derive(Clone)]
+pub enum ExprInner {
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
     Mod(Box<Expr>, Box<Expr>),
@@ -93,7 +85,7 @@ pub enum Expr {
     Sub(Box<Expr>, Box<Expr>),
 
     ShL(Box<Expr>, Box<Expr>),
-    ShR(Box<Expr>, Box<Expr>),
+    SaR(Box<Expr>, Box<Expr>),
     Xor(Box<Expr>, Box<Expr>),
     And(Box<Expr>, Box<Expr>),
     Or(Box<Expr>, Box<Expr>),
@@ -130,10 +122,18 @@ pub enum Expr {
     SaRAssign(Box<Expr>, Box<Expr>),
 
     Integer(i32),
-    Float(f32),
+    Floating(f32),
     Var(Handler),
     Func(Handler, Vec<Expr>),
     Array(Handler, Vec<Expr>),
+}
+
+#[derive(Clone)]
+pub struct Expr {
+    pub inner: ExprInner,
+    pub ty: Type,
+    pub category: ExprCategory,
+    pub is_const: ExprConst,
 }
 
 #[derive(Clone, Copy)]

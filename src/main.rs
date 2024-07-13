@@ -16,6 +16,7 @@
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
 mod arg_parse;
+mod error;
 mod frontend;
 mod preprocessor;
 

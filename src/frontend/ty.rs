@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum Type {
     Int,
     Float,
@@ -23,4 +23,6 @@ pub enum Type {
     Pointer(Box<Type>),
     Array(Box<Type>, usize),
     Function(Box<Type>, Vec<Type>),
+    // 变参函数
+    VAList,
 }
