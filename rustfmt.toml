@@ -1,4 +1,4 @@
 unstable_features = true
 match_arm_blocks = false
-max_width = 90
+max_width = 128
 use_small_heuristics = "Max"
