@@ -16,7 +16,6 @@
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
 mod arg_parse;
-mod error;
 mod frontend;
 mod preprocessor;
 
@@ -38,16 +37,18 @@ macro_rules! risk {
 
 fn compile() -> Result<(), Box<dyn std::error::Error>> {
     let ParsedArgs { mode, input, output } = arg_parse::parse(std::env::args())?;
-    let code = preprocess(read_to_string(input)?);
+    // let code = preprocess(read_to_string(input)?);
+    let code = read_to_string(input)?;
+    let ast = frontend::parser::parse(&code)?;
     let mut f = File::create(output)?;
     match mode {
         Mode::Debug => {
             println!("使用调试模式");
-            write!(f, "{code}")?;
+            write!(f, "{ast:#?}")?;
         }
         Mode::Optimization => {
             println!("使用优化模式");
-            write!(f, "{code}")?;
+            write!(f, "{ast:#?}")?;
         }
     }
     Ok(())

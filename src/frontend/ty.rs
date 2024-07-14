@@ -15,14 +15,27 @@
 // You should have received a copy of the GNU General Public License
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type {
     Int,
     Float,
     Void,
-    Pointer(Box<Type>),
-    Array(Box<Type>, usize),
+    Pointer(Box<Type>, Vec<usize>),
+    Array(Box<Type>, Vec<usize>),
     Function(Box<Type>, Vec<Type>),
     // 变参函数
     VAList,
+}
+
+impl Type {
+    pub fn convertible(&self, rhs: &Self) -> bool {
+        match (self, rhs) {
+            (Self::Int, Self::Int) | (Self::Int, Self::Float) | (Self::Float, Self::Int) | (Self::Float, Self::Float) => true,
+            (Self::Array(base_1, len_1), Self::Pointer(base_2, len_2)) => base_1 == base_2 && &len_1[1..] == len_2,
+            (Self::Pointer(base_1, len_1), Self::Array(base_2, len_2)) => base_1 == base_2 && len_1 == &len_2[1..],
+            (Self::Array(base_1, len_1), Self::Array(base_2, len_2))
+            | (Self::Pointer(base_1, len_1), Self::Pointer(base_2, len_2)) => base_1 == base_2 && len_1 == len_2,
+            _ => false,
+        }
+    }
 }

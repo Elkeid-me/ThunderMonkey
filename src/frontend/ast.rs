@@ -16,10 +16,11 @@
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::ty::Type;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub type Handler = usize;
 
+#[derive(Debug)]
 pub struct Definition {
     pub init: Option<Init>,
     pub ty: Type,
@@ -28,13 +29,15 @@ pub struct Definition {
     pub is_arg: bool,
 }
 
+#[derive(Debug)]
 pub struct TranslationUnit {
     pub ast: Vec<Handler>,
     pub symbol_table: HashMap<Handler, Definition>,
 }
 
+#[derive(Debug)]
 pub enum Init {
-    Function { block: Block, is_entry: bool },
+    Function { block: Block, is_entry: bool, arg_handlers: Vec<usize> },
     Expr(Expr),
     ConstInt(i32),
     ConstFloat(f32),
@@ -42,7 +45,7 @@ pub enum Init {
     ConstList(ConstInitList),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum InitListItem {
     InitList(Box<InitList>),
     Expr(Expr),
@@ -50,7 +53,7 @@ pub enum InitListItem {
 
 pub type InitList = Vec<InitListItem>;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum ConstInitListItem {
     ConstInitList(Box<ConstInitList>),
     Int(i32),
@@ -59,6 +62,7 @@ pub enum ConstInitListItem {
 
 pub type ConstInitList = Vec<ConstInitListItem>;
 
+#[derive(Debug)]
 pub enum Statement {
     Expr(Expr),
     If(Expr, Box<Block>, Box<Block>),
@@ -70,13 +74,14 @@ pub enum Statement {
 
 pub type Block = Vec<BlockItem>;
 
+#[derive(Debug)]
 pub enum BlockItem {
     Def(Vec<Handler>),
     Block(Block),
     Statement(Statement),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum ExprInner {
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
@@ -125,36 +130,19 @@ pub enum ExprInner {
     Floating(f32),
     Var(Handler),
     Func(Handler, Vec<Expr>),
-    Array(Handler, Vec<Expr>),
+    ArrayElem(Handler, Vec<Expr>),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Expr {
     pub inner: ExprInner,
     pub ty: Type,
     pub category: ExprCategory,
-    pub is_const: ExprConst,
+    pub is_const: bool,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum ExprCategory {
     LValue,
     RValue,
-}
-
-#[derive(Clone, Copy)]
-pub enum ExprConst {
-    ConstEval,
-    NonConst,
-}
-
-impl std::ops::BitAnd for ExprConst {
-    type Output = ExprConst;
-
-    fn bitand(self, rhs: Self) -> Self::Output {
-        match (self, rhs) {
-            (Self::ConstEval, Self::ConstEval) => Self::ConstEval,
-            _ => Self::NonConst,
-        }
-    }
 }

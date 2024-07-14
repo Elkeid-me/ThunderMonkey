@@ -15,31 +15,31 @@
 // You should have received a copy of the GNU General Public License
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::error::{CompilerError, ErrorNumber::*};
-use crate::frontend::ast::{ExprCategory::*, ExprConst::*, ExprInner::*, *};
+use super::super::error::{CompilerError, ErrorNumber::*};
+use crate::frontend::ast::{ExprCategory::*, ExprInner::*, *};
 use crate::frontend::parser::{ASTBuilder, Rule};
-use crate::{frontend::ty::Type::*, risk};
+use crate::frontend::ty::Type::{self, *};
 use libc::strtof;
-use pest::{iterators::Pair, Parser};
+use pest::iterators::Pair;
 use std::ptr::null_mut;
 
 fn parse_integer(expr: Pair<Rule>) -> Result<Expr, CompilerError> {
     match expr.as_rule() {
         Rule::integer_bin => match i32::from_str_radix(&expr.as_str()[2..], 2) {
-            Ok(val) => Ok(Expr { inner: Integer(val), ty: Int, category: RValue, is_const: ConstEval }),
-            Err(_) => Err(CompilerError { error_number: ParseIntError }),
+            Ok(val) => Ok(Expr { inner: Integer(val), ty: Int, category: RValue, is_const: true }),
+            Err(_) => Err(CompilerError { error_number: ParseIntError, line_col: expr.line_col() }),
         },
-        Rule::integer_oct => match i32::from_str_radix(&expr.as_str()[2..], 8) {
-            Ok(val) => Ok(Expr { inner: Integer(val), ty: Int, category: RValue, is_const: ConstEval }),
-            Err(_) => Err(CompilerError { error_number: ParseIntError }),
+        Rule::integer_oct => match i32::from_str_radix(&expr.as_str(), 8) {
+            Ok(val) => Ok(Expr { inner: Integer(val), ty: Int, category: RValue, is_const: true }),
+            Err(_) => Err(CompilerError { error_number: ParseIntError, line_col: expr.line_col() }),
         },
         Rule::integer_dec => match expr.as_str().parse() {
-            Ok(val) => Ok(Expr { inner: Integer(val), ty: Int, category: RValue, is_const: ConstEval }),
-            Err(_) => Err(CompilerError { error_number: ParseIntError }),
+            Ok(val) => Ok(Expr { inner: Integer(val), ty: Int, category: RValue, is_const: true }),
+            Err(_) => Err(CompilerError { error_number: ParseIntError, line_col: expr.line_col() }),
         },
         Rule::integer_hex => match i32::from_str_radix(&expr.as_str()[2..], 16) {
-            Ok(val) => Ok(Expr { inner: Integer(val), ty: Int, category: RValue, is_const: ConstEval }),
-            Err(_) => Err(CompilerError { error_number: ParseIntError }),
+            Ok(val) => Ok(Expr { inner: Integer(val), ty: Int, category: RValue, is_const: true }),
+            Err(_) => Err(CompilerError { error_number: ParseIntError, line_col: expr.line_col() }),
         },
         _ => unreachable!(),
     }
@@ -48,15 +48,15 @@ fn parse_integer(expr: Pair<Rule>) -> Result<Expr, CompilerError> {
 fn parse_float(expr: Pair<Rule>) -> Result<Expr, CompilerError> {
     match expr.as_rule() {
         Rule::floating_dec => match expr.as_str().parse() {
-            Ok(val) => Ok(Expr { inner: Floating(val), ty: Float, category: RValue, is_const: ConstEval }),
-            Err(_) => Err(CompilerError { error_number: ParseFloatError }),
+            Ok(val) => Ok(Expr { inner: Floating(val), ty: Float, category: RValue, is_const: true }),
+            Err(_) => Err(CompilerError { error_number: ParseFloatError, line_col: expr.line_col() }),
         },
         Rule::floating_hex => {
             let mut floating_str = expr.as_str().to_string();
             floating_str.push('\0');
             match unsafe { strtof(floating_str.as_ptr() as *const i8, null_mut()) } {
-                f32::INFINITY => Err(CompilerError { error_number: ParseFloatError }),
-                val => Ok(Expr { inner: Floating(val), ty: Float, category: RValue, is_const: ConstEval }),
+                f32::INFINITY => Err(CompilerError { error_number: ParseFloatError, line_col: expr.line_col() }),
+                val => Ok(Expr { inner: Floating(val), ty: Float, category: RValue, is_const: true }),
             }
         }
         _ => unreachable!(),
@@ -65,13 +65,13 @@ fn parse_float(expr: Pair<Rule>) -> Result<Expr, CompilerError> {
 
 #[macro_export]
 macro_rules! arith_op_check {
-    ($l: expr, $r: expr, $op_1: tt, $op_2: path) => {{
+    ($l: expr, $r: expr, $op_1: tt, $op_2: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
         let Expr { inner: r_inner, ty: r_ty, category: r_category, is_const: r_is_const } = $r?;
         let ty = match (&l_ty, &r_ty) {
             (Int, Int) => Ok(Int),
             (Float, Int) | (Int, Float) | (Float, Float) => Ok(Float),
-            _ => Err(CompilerError { error_number: InvalidOperands }),
+            _ => Err(CompilerError { error_number: InvalidOperands, line_col: $line_col }),
         }?;
         let inner = match (l_inner, r_inner) {
             (Integer(l), Integer(r)) => Integer(l $op_1 r),
@@ -90,11 +90,11 @@ macro_rules! arith_op_check {
 
 #[macro_export]
 macro_rules! logic_op_check {
-    ($l: expr, $r: expr, $op_1: tt, $op_2: path) => {{
+    ($l: expr, $r: expr, $op_1: tt, $op_2: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
         let Expr { inner: r_inner, ty: r_ty, category: r_category, is_const: r_is_const } = $r?;
         if !matches!((&l_ty, &r_ty), (Int, Int) | (Float, Int) | (Int, Float) | (Float, Float)) {
-            return Err(CompilerError { error_number: InvalidOperands });
+            return Err(CompilerError { error_number: InvalidOperands, line_col: $line_col });
         }
         let inner = match (l_inner, r_inner) {
             (Integer(l), Integer(r)) => Integer((l != 0 $op_1 r != 0) as i32),
@@ -113,11 +113,11 @@ macro_rules! logic_op_check {
 
 #[macro_export]
 macro_rules! int_op_check {
-    ($l: expr, $r: expr, $op_1: tt, $op_2: path) => {{
+    ($l: expr, $r: expr, $op_1: tt, $op_2: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
         let Expr { inner: r_inner, ty: r_ty, category: r_category, is_const: r_is_const } = $r?;
         if !matches!((&l_ty, &r_ty), (Int, Int)) {
-            return Err(CompilerError { error_number: InvalidOperands });
+            return Err(CompilerError { error_number: InvalidOperands, line_col: $line_col });
         }
         let inner = match (l_inner, r_inner) {
             (Integer(l), Integer(r)) => Integer(l $op_1 r),
@@ -133,11 +133,11 @@ macro_rules! int_op_check {
 
 #[macro_export]
 macro_rules! rel_op_check {
-    ($l: expr, $r: expr, $op_1: tt, $op_2: path) => {{
+    ($l: expr, $r: expr, $op_1: tt, $op_2: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
         let Expr { inner: r_inner, ty: r_ty, category: r_category, is_const: r_is_const } = $r?;
         if !matches!((&l_ty, &r_ty), (Int, Int) | (Float, Int) | (Int, Float) | (Float, Float)) {
-            return Err(CompilerError { error_number: InvalidOperands });
+            return Err(CompilerError { error_number: InvalidOperands, line_col: $line_col });
         }
         let inner = match (l_inner, r_inner) {
             (Integer(l), Integer(r)) => Integer((l $op_1 r) as i32),
@@ -156,99 +156,99 @@ macro_rules! rel_op_check {
 
 #[macro_export]
 macro_rules! assign_op_check {
-    ($l: expr, $r: expr, $op: path) => {{
+    ($l: expr, $r: expr, $op: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
         let Expr { inner: r_inner, ty: r_ty, category: r_category, is_const: r_is_const } = $r?;
         if !matches!(l_category, LValue) {
-            return Err(CompilerError { error_number: NotLValue });
+            return Err(CompilerError { error_number: NotLValue, line_col: $line_col });
         }
         let ty = match (&l_ty, &r_ty) {
             (Int, Int) | (Int, Float) => Ok(Int),
             (Float, Int) | (Float, Float) => Ok(Float),
-            _ => Err(CompilerError { error_number: InvalidOperands }),
+            _ => Err(CompilerError { error_number: InvalidOperands, line_col: $line_col }),
         }?;
         let inner = $op(
             Box::new(Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const }),
             Box::new(Expr { inner: r_inner, ty: r_ty, category: r_category, is_const: r_is_const }),
         );
-        Ok(Expr { inner, ty, category: LValue, is_const: NonConst })
+        Ok(Expr { inner, ty, category: LValue, is_const: false })
     }};
 }
 
 #[macro_export]
 macro_rules! int_assign_op_check {
-    ($l: expr, $r: expr, $op: path) => {{
+    ($l: expr, $r: expr, $op: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
         let Expr { inner: r_inner, ty: r_ty, category: r_category, is_const: r_is_const } = $r?;
         if !matches!(l_category, LValue) {
-            return Err(CompilerError { error_number: NotLValue });
+            return Err(CompilerError { error_number: NotLValue, line_col: $line_col });
         }
         if !matches!((&l_ty, &r_ty), (Int, Int)) {
-            return Err(CompilerError { error_number: InvalidOperands });
+            return Err(CompilerError { error_number: InvalidOperands, line_col: $line_col });
         }
         let inner = $op(
             Box::new(Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const }),
             Box::new(Expr { inner: r_inner, ty: r_ty, category: r_category, is_const: r_is_const }),
         );
-        Ok(Expr { inner, ty: Int, category: LValue, is_const: NonConst })
+        Ok(Expr { inner, ty: Int, category: LValue, is_const: false })
     }};
 }
 
 fn parse_infix(l: Result<Expr, CompilerError>, op: Pair<Rule>, r: Result<Expr, CompilerError>) -> Result<Expr, CompilerError> {
     match op.as_rule() {
-        Rule::modu => int_op_check!(l, r, %, Mod),
+        Rule::modu => int_op_check!(l, r, %, Mod, op.line_col()),
 
-        Rule::mul => arith_op_check!(l, r, *, Mul),
-        Rule::div => arith_op_check!(l, r, /, Div),
-        Rule::add => arith_op_check!(l, r, +, Add),
-        Rule::sub => arith_op_check!(l, r, -, Sub),
+        Rule::mul => arith_op_check!(l, r, *, Mul, op.line_col()),
+        Rule::div => arith_op_check!(l, r, /, Div, op.line_col()),
+        Rule::add => arith_op_check!(l, r, +, Add, op.line_col()),
+        Rule::sub => arith_op_check!(l, r, -, Sub, op.line_col()),
 
-        Rule::logic_and => logic_op_check!(l, r, ||, LogicAnd),
-        Rule::logic_or => logic_op_check!(l, r, ||, LogicOr),
+        Rule::logic_and => logic_op_check!(l, r, ||, LogicAnd, op.line_col()),
+        Rule::logic_or => logic_op_check!(l, r, ||, LogicOr, op.line_col()),
 
-        Rule::shl => int_op_check!(l, r, <<, ShL),
-        Rule::sar => int_op_check!(l, r, >>, SaR),
-        Rule::xor => int_op_check!(l, r, ^, Xor),
-        Rule::and => int_op_check!(l, r, &, And),
-        Rule::or => int_op_check!(l, r, |, Or),
+        Rule::shl => int_op_check!(l, r, <<, ShL, op.line_col()),
+        Rule::sar => int_op_check!(l, r, >>, SaR, op.line_col()),
+        Rule::xor => int_op_check!(l, r, ^, Xor, op.line_col()),
+        Rule::and => int_op_check!(l, r, &, And, op.line_col()),
+        Rule::or => int_op_check!(l, r, |, Or, op.line_col()),
 
-        Rule::eq => rel_op_check!(l, r, ==, Eq),
-        Rule::neq => rel_op_check!(l, r, !=, Neq),
-        Rule::grt => rel_op_check!(l, r, >, Grt),
-        Rule::geq => rel_op_check!(l, r, >=, Geq),
-        Rule::les => rel_op_check!(l, r, <, Les),
-        Rule::leq => rel_op_check!(l, r, <=, Leq),
+        Rule::eq => rel_op_check!(l, r, ==, Eq, op.line_col()),
+        Rule::neq => rel_op_check!(l, r, !=, Neq, op.line_col()),
+        Rule::grt => rel_op_check!(l, r, >, Grt, op.line_col()),
+        Rule::geq => rel_op_check!(l, r, >=, Geq, op.line_col()),
+        Rule::les => rel_op_check!(l, r, <, Les, op.line_col()),
+        Rule::leq => rel_op_check!(l, r, <=, Leq, op.line_col()),
 
-        Rule::assignment => assign_op_check!(l, r, Assignment),
-        Rule::add_assign => assign_op_check!(l, r, AddAssign),
-        Rule::sub_assign => assign_op_check!(l, r, SubAssign),
-        Rule::mul_assign => assign_op_check!(l, r, MulAssign),
-        Rule::div_assign => assign_op_check!(l, r, DivAssign),
+        Rule::assignment => assign_op_check!(l, r, Assignment, op.line_col()),
+        Rule::add_assign => assign_op_check!(l, r, AddAssign, op.line_col()),
+        Rule::sub_assign => assign_op_check!(l, r, SubAssign, op.line_col()),
+        Rule::mul_assign => assign_op_check!(l, r, MulAssign, op.line_col()),
+        Rule::div_assign => assign_op_check!(l, r, DivAssign, op.line_col()),
 
-        Rule::mod_assign => int_assign_op_check!(l, r, ModAssign),
-        Rule::and_assign => int_assign_op_check!(l, r, AndAssign),
-        Rule::or_assign => int_assign_op_check!(l, r, OrAssign),
-        Rule::xor_assign => int_assign_op_check!(l, r, XorAssign),
-        Rule::shl_assign => int_assign_op_check!(l, r, ShLAssign),
-        Rule::sar_assign => int_assign_op_check!(l, r, SaRAssign),
+        Rule::mod_assign => int_assign_op_check!(l, r, ModAssign, op.line_col()),
+        Rule::and_assign => int_assign_op_check!(l, r, AndAssign, op.line_col()),
+        Rule::or_assign => int_assign_op_check!(l, r, OrAssign, op.line_col()),
+        Rule::xor_assign => int_assign_op_check!(l, r, XorAssign, op.line_col()),
+        Rule::shl_assign => int_assign_op_check!(l, r, ShLAssign, op.line_col()),
+        Rule::sar_assign => int_assign_op_check!(l, r, SaRAssign, op.line_col()),
         _ => unreachable!(),
     }
 }
 
 #[macro_export]
 macro_rules! dec_inc_check {
-    ($e: expr, $op: path, $result_category: expr) => {{
+    ($e: expr, $op: path, $result_category: expr, $line_col: expr) => {{
         let Expr { inner: expr_inner, ty: expr_ty, category, is_const } = $e?;
         if !matches!(category, LValue) {
-            return Err(CompilerError { error_number: NotLValue });
+            return Err(CompilerError { error_number: NotLValue, line_col: $line_col });
         }
         let ty = match &expr_ty {
             Int => Ok(Int),
             Float => Ok(Float),
-            _ => Err(CompilerError { error_number: InvalidOperands }),
+            _ => Err(CompilerError { error_number: InvalidOperands, line_col: $line_col }),
         }?;
         let inner = $op(Box::new(Expr { inner: expr_inner, ty: expr_ty, category, is_const }));
-        Ok(Expr { inner, ty, category: $result_category, is_const: NonConst })
+        Ok(Expr { inner, ty, category: $result_category, is_const: false })
     }};
 }
 
@@ -257,7 +257,7 @@ fn parse_prefix(op: Pair<Rule>, expr: Result<Expr, CompilerError>) -> Result<Exp
         Rule::logic_not => {
             let Expr { inner: expr_inner, ty: expr_ty, category, is_const } = expr?;
             if !matches!(&expr_ty, Int | Float) {
-                return Err(CompilerError { error_number: InvalidOperands });
+                return Err(CompilerError { error_number: InvalidOperands, line_col: op.line_col() });
             }
             let inner = match expr_inner {
                 Integer(i) => Integer((i == 0) as i32),
@@ -271,7 +271,7 @@ fn parse_prefix(op: Pair<Rule>, expr: Result<Expr, CompilerError>) -> Result<Exp
             let ty = match &expr_ty {
                 Int => Ok(Int),
                 Float => Ok(Float),
-                _ => Err(CompilerError { error_number: InvalidOperands }),
+                _ => Err(CompilerError { error_number: InvalidOperands, line_col: op.line_col() }),
             }?;
             let inner = match expr_inner {
                 Integer(i) => Integer(-i),
@@ -284,7 +284,7 @@ fn parse_prefix(op: Pair<Rule>, expr: Result<Expr, CompilerError>) -> Result<Exp
         Rule::bit_not => {
             let Expr { inner: expr_inner, ty: expr_ty, category, is_const } = expr?;
             if !matches!(&expr_ty, Int) {
-                return Err(CompilerError { error_number: InvalidOperands });
+                return Err(CompilerError { error_number: InvalidOperands, line_col: op.line_col() });
             }
             let inner = match expr_inner {
                 Integer(i) => Integer(!i),
@@ -292,16 +292,16 @@ fn parse_prefix(op: Pair<Rule>, expr: Result<Expr, CompilerError>) -> Result<Exp
             };
             Ok(Expr { inner, ty: Int, category: RValue, is_const })
         }
-        Rule::pre_inc => dec_inc_check!(expr, PreInc, RValue),
-        Rule::pre_dec => dec_inc_check!(expr, PreDec, LValue),
+        Rule::pre_inc => dec_inc_check!(expr, PreInc, RValue, op.line_col()),
+        Rule::pre_dec => dec_inc_check!(expr, PreDec, LValue, op.line_col()),
         _ => unreachable!(),
     }
 }
 
 fn parse_postfix(expr: Result<Expr, CompilerError>, op: Pair<Rule>) -> Result<Expr, CompilerError> {
     match op.as_rule() {
-        Rule::post_inc => dec_inc_check!(expr, PostInc, RValue),
-        Rule::post_dec => dec_inc_check!(expr, PostDec, RValue),
+        Rule::post_inc => dec_inc_check!(expr, PostInc, RValue, op.line_col()),
+        Rule::post_dec => dec_inc_check!(expr, PostDec, RValue, op.line_col()),
         _ => unreachable!(),
     }
 }
@@ -318,42 +318,120 @@ impl ASTBuilder {
 
     fn parse_primary(&self, expr: Pair<Rule>) -> Result<Expr, CompilerError> {
         match expr.as_rule() {
-            Rule::expression => self.parse_expr(expr),
             Rule::integer_bin | Rule::integer_oct | Rule::integer_dec | Rule::integer_hex => parse_integer(expr),
             Rule::floating_dec | Rule::floating_hex => parse_float(expr),
-            // Rule::identifier => Ok(Var(expr.as_str().to_string())),
-            // Rule::function_call => {
-            //     let mut iter = expr.into_inner();
-            //     Ok(Func(
-            //         iter.next().unwrap().as_str().to_string(),
-            //         iter.map(|p| self.parse_expr(p)).collect::<Result<_, _>>()?,
-            //     ))
-            // }
-            // Rule::array_element => {
-            //     let mut iter = expr.into_inner();
-            //     Ok(Array(
-            //         iter.next().unwrap().as_str().to_string(),
-            //         iter.next()
-            //             .unwrap()
-            //             .into_inner()
-            //             .map(|p| self.parse_expr(p))
-            //             .collect::<Result<_, _>>()?,
-            //     ))
-            // }
+            Rule::identifier => match self.search(expr.as_str()) {
+                Some(handler) => match self.symbol_table.get(&handler).unwrap() {
+                    Definition { init: Some(Init::ConstInt(i)), .. } => {
+                        Ok(Expr { inner: Integer(*i), ty: Int, category: RValue, is_const: true })
+                    }
+                    Definition { init: Some(Init::ConstFloat(f)), .. } => {
+                        Ok(Expr { inner: Floating(*f), ty: Float, category: RValue, is_const: true })
+                    }
+                    Definition { init: _, ty, .. } => match ty {
+                        Int | Float => Ok(Expr { inner: Var(handler), ty: ty.clone(), category: LValue, is_const: false }),
+                        _ => Ok(Expr { inner: Var(handler), ty: ty.clone(), category: RValue, is_const: false }),
+                    },
+                },
+                None => Err(CompilerError { error_number: Undefined, line_col: expr.line_col() }),
+            },
+            Rule::func_call => {
+                let line_col = expr.line_col();
+                let mut iter = expr.into_inner();
+                let id = iter.next().unwrap().as_str();
+                match self.search(id) {
+                    Some(handler) => match self.symbol_table.get(&handler).unwrap() {
+                        Definition { init: _, ty: Function(ret_ty, arg_tys), .. } => {
+                            let args = iter.map(|p| self.parse_expr(p)).collect::<Result<Vec<_>, _>>()?;
+                            if arg_tys.len() != args.len() {
+                                Err(CompilerError { error_number: IncompatibleType(todo!(), todo!()), line_col })
+                            } else {
+                                for (arg, expected_ty) in args.iter().zip(arg_tys) {
+                                    if !arg.ty.convertible(expected_ty) {
+                                        return Err(CompilerError {
+                                            error_number: IncompatibleType(arg.ty.clone(), vec![expected_ty.clone()]),
+                                            line_col,
+                                        });
+                                    }
+                                }
+                                Ok(Expr {
+                                    inner: Func(handler, args),
+                                    ty: ret_ty.as_ref().clone(),
+                                    category: RValue,
+                                    is_const: false,
+                                })
+                            }
+                        }
+                        Definition { .. } => Err(CompilerError { error_number: IncompatibleType(todo!(), todo!()), line_col }),
+                    },
+                    None => Err(CompilerError { error_number: Undefined, line_col }),
+                }
+            }
+            Rule::array_element => {
+                let line_col = expr.line_col();
+                let mut iter = expr.into_inner();
+                let id = iter.next().unwrap().as_str();
+                let subscripts =
+                    iter.next().unwrap().into_inner().map(|p| self.parse_expr(p)).collect::<Result<Vec<_>, _>>()?;
+                match self.search(id) {
+                    Some(handler) => match self.symbol_table.get(&handler).unwrap() {
+                        Definition { init: Some(Init::ConstList(list)), ty: Array(base, lens), .. } => {
+                            self.check_pointer(subscripts, handler, base, &lens[1..])
+                        }
+                        Definition { init: _, ty: Pointer(base, lens), .. } => {
+                            self.check_pointer(subscripts, handler, base, lens)
+                        }
+                        Definition { init: _, ty: Array(base, lens), .. } => {
+                            self.check_pointer(subscripts, handler, base, &lens[1..])
+                        }
+                        Definition { init: _, ty, .. } => Err(CompilerError {
+                            error_number: IncompatibleType(ty.clone(), vec![Array(Box::new(Int), Vec::new())]),
+                            line_col,
+                        }),
+                    },
+                    None => Err(CompilerError { error_number: Undefined, line_col }),
+                }
+            }
+            Rule::expression => self.parse_expr(expr),
             _ => unreachable!(),
         }
     }
 
+    // len 是指针长度
+    fn check_pointer(&self, subscripts: Vec<Expr>, handler: usize, base: &Type, lens: &[usize]) -> Result<Expr, CompilerError> {
+        for expr in subscripts.iter() {
+            if !matches!(expr.ty, Int) {
+                return Err(CompilerError { error_number: IncompatibleType(expr.ty.clone(), vec![Int]), line_col: (0, 0) });
+            }
+        }
+        let subscripts_len = subscripts.len();
+        match (subscripts_len - 1).cmp(&lens.len()) {
+            std::cmp::Ordering::Less => Ok(Expr {
+                inner: ArrayElem(handler, subscripts),
+                ty: Pointer(Box::new(base.clone()), lens[subscripts_len..].to_vec()),
+                category: RValue,
+                is_const: false,
+            }),
+            std::cmp::Ordering::Equal => {
+                Ok(Expr { inner: ArrayElem(handler, subscripts), ty: base.clone(), category: LValue, is_const: false })
+            }
+            std::cmp::Ordering::Greater => Err(CompilerError {
+                error_number: IncompatibleType(base.clone(), vec![Array(Box::new(Int), Vec::new())]),
+                line_col: (0, 0),
+            }),
+        }
+    }
+
     // // len 是指针长度
-    // fn check_pointer<'a>(&self, exprs: &[Expr], len: &'a [usize]) -> Result<(RefType<'a>, ExprCategory, ExprConst), String> {
+    // fn check_pointer(&self, exprs: &[Expr], len: [usize]) -> Result<(Type, ExprCategory, ExprConst), String> {
     //     for expr in exprs {
     //         if !matches!(self.expr_type(expr)?, RefInt) {
     //             return Err(format!("{expr:?} 不是整型表达式"));
     //         }
     //     }
     //     match (exprs.len() - 1).cmp(&len.len()) {
-    //         std::cmp::Ordering::Less => Ok((RefIntPointer(&len[exprs.len()..]), RValue, NonConst)),
-    //         std::cmp::Ordering::Equal => Ok((RefInt, LValue, NonConst)),
+    //         std::cmp::Ordering::Less => Ok((RefIntPointer(&len[exprs.len()..]), RValue, false)),
+    //         std::cmp::Ordering::Equal => Ok((RefInt, LValue, false)),
     //         std::cmp::Ordering::Greater => Err("下标运算符不能应用于整型对象".to_string()),
     //     }
     // }
@@ -391,12 +469,12 @@ impl ASTBuilder {
     //         },
 
     //         PostInc(e) | PostDec(e) => match self.expr_check(e)? {
-    //             (RefInt, LValue, _) => Ok((RefInt, RValue, NonConst)),
+    //             (RefInt, LValue, _) => Ok((RefInt, RValue, false)),
     //             _ => Err(format!("{e:?} 不是左值表达式")),
     //         },
 
     //         PreInc(e) | PreDec(e) => match self.expr_check(e)? {
-    //             (RefInt, LValue, _) => Ok((RefInt, LValue, NonConst)),
+    //             (RefInt, LValue, _) => Ok((RefInt, LValue, false)),
     //             _ => Err(format!("{e:?} 不是左值表达式")),
     //         },
 
@@ -411,17 +489,17 @@ impl ASTBuilder {
     //         | SaRAssign(l, r)
     //         | DivAssign(l, r)
     //         | ModAssign(l, r) => match (self.expr_check(l)?, self.expr_check(r)?) {
-    //             ((RefInt, LValue, _), (RefInt, _, _)) => Ok((RefInt, LValue, NonConst)),
+    //             ((RefInt, LValue, _), (RefInt, _, _)) => Ok((RefInt, LValue, false)),
     //             _ => Err(format!("{l:?} 或 {r:?} 不是整型表达式, 或 {l:?} 不是左值表达式")),
     //         },
 
-    //         Num(_) => Ok((RefInt, RValue, ConstEval)),
+    //         Num(_) => Ok((RefInt, RValue, true)),
     //         Var(id) => match self.search(id) {
-    //             Some((Int, Some(Init::Const(_)))) => Ok((RefInt, RValue, ConstEval)), // const 变量
-    //             Some((Int, _)) => Ok((RefInt, LValue, NonConst)),                     // 普通变量
+    //             Some((Int, Some(Init::Const(_)))) => Ok((RefInt, RValue, true)), // const 变量
+    //             Some((Int, _)) => Ok((RefInt, LValue, false)),                     // 普通变量
     //             Some((IntArray(_), Some(Init::ConstList(_)))) => Err("孤立的 const 数组似乎干不了什么事...".to_string()), // const 数组
-    //             Some((IntArray(len), _)) => Ok((RefIntPointer(&len[1..]), RValue, NonConst)), // 普通数组
-    //             Some((IntPointer(len), _)) => Ok((RefIntPointer(len), RValue, NonConst)),     // 普通指针
+    //             Some((IntArray(len), _)) => Ok((RefIntPointer(&len[1..]), RValue, false)), // 普通数组
+    //             Some((IntPointer(len), _)) => Ok((RefIntPointer(len), RValue, false)),     // 普通指针
     //             _ => Err(format!("标识符 {id} 在当前作用域不存在")),
     //         },
     //         Func(id, exprs) => match self.search(id) {
@@ -441,7 +519,7 @@ impl ASTBuilder {
     //                         return Err(format!("{expr:?} 与类型 {expect_type} 不兼容"));
     //                     }
     //                 }
-    //                 Ok((ret_type.to_ref_type(), RValue, NonConst))
+    //                 Ok((ret_type.to_ref_type(), RValue, false))
     //             }
     //             Some(_) => Err(format!("标识符 {id} 不是函数")),
     //             None => Err(format!("标识符 {id} 在当前作用域中不存在")),
@@ -457,12 +535,12 @@ impl ASTBuilder {
     //                         if !matches!(ty, RefInt) {
     //                             return Err(format!("{expr:?} 不是整型表达式"));
     //                         }
-    //                         const_eval &= matches!(is_const, ConstEval);
+    //                         const_eval &= matches!(is_const, true);
     //                     }
     //                     if const_eval {
-    //                         Ok((RefInt, RValue, ConstEval))
+    //                         Ok((RefInt, RValue, true))
     //                     } else {
-    //                         Ok((RefInt, RValue, NonConst))
+    //                         Ok((RefInt, RValue, false))
     //                     }
     //                 }
     //                 std::cmp::Ordering::Greater => Err("下标运算符不能应用于整型对象".to_string()),

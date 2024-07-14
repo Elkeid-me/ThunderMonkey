@@ -22,20 +22,20 @@
 /// `translation_unit`（翻译单元）为语法的根。
 
 WHITESPACE = _{ " " | "\t" | NEWLINE }
+COMMENT    = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") | ("//" ~ (!"\n" ~ ANY)* ~ "\n") }
 translation_unit = _{ SOI ~ global_item+ ~ EOI }
 
 identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 global_item = _{ all_definitions | func_decl ~ ";" | func_def }
 
-func_def          =  { func_decl ~ block }
-func_decl         =  { type ~ identifier ~ "(" ~ parameter_list ~ ")" }
+func_def          =  { func_dec ~ block }
+func_decl         =  { func_dec }
+func_dec          =  { type ~ identifier ~ "(" ~ parameter_list ~ ")" }
 parameter_list    =  { parameter_def ~ ("," ~ parameter_def)* | "void" | "" }
-parameter_def     = _{ ptr_parameter | var_parameter | ptr_parameter_no_name | var_parameter_no_name }
+parameter_def     = _{ ptr_parameter | var_parameter }
 
 ptr_parameter         =  { non_void_type ~ identifier ~ "[" ~ "]" ~ array_lengths? }
 var_parameter         =  { non_void_type ~ identifier }
-ptr_parameter_no_name =  { non_void_type ~ "[" ~ "]" ~ array_lengths? }
-var_parameter_no_name =  { non_void_type }
 
 int_keyword      = @{ "int" ~ !(ASCII_ALPHANUMERIC | "_") }
 float_keyword    = @{ "float" ~ !(ASCII_ALPHANUMERIC | "_") }
@@ -66,7 +66,7 @@ initializer_list      =  { "{" ~ (initializer_list_item ~ ("," ~ initializer_lis
 initializer_list_item = _{ initializer_list | expression}
 
 primary = _{ floating_hex | floating_dec | integer_hex | integer_bin | integer_oct | integer_dec
-             | putf_manhole | function_call | array_element | identifier | "(" ~ expression ~ ")" }
+             | putf_manhole | func_call | array_element | identifier | "(" ~ expression ~ ")" }
 atom    = _{ prefix_operator* ~ primary ~ postfix_operator* }
 
 postfix_operator      = _{ post_inc | post_dec }
@@ -126,9 +126,9 @@ sar_assign = { ">>=" }
 array_element   = { identifier ~ array_subscript }
 array_subscript = { ("[" ~ expression ~ "]")+ }
 
-expression    = { atom ~ (infix ~ atom)* }
-function_call = { identifier ~ "(" ~ argument_list? ~ ")" }
-argument_list = { expression ~ ("," ~ expression)* }
+expression    =  { atom ~ (infix ~ atom)* }
+func_call     =  { identifier ~ "(" ~ argument_list? ~ ")" }
+argument_list = _{ expression ~ ("," ~ expression)* }
 
 /// `putf` 的编译器开洞
 string_literal = @{ "\"" ~ ((!"\"" ~ ANY) | ("\\\""))* ~ "\"" }
@@ -158,6 +158,7 @@ floating_hex            = @{ floating_hex_1 | floating_hex_2 }
 
 block = { "{" ~ (block | non_block_block_item)* ~ "}" }
 
-statement            = _{ while_statement | if_statement | (continue_keyword | break_keyword | return_statement | expression | "") ~ ";"}
+statement            = _{ while_statement | if_statement | (continue_keyword | break_keyword | return_statement | expression | empty_statement) ~ ";"}
 all_definitions      = _{ (const_definitions | definitions) ~ ";" }
+empty_statement      =  { "" }
 non_block_block_item = _{ statement | all_definitions }

@@ -16,5 +16,6 @@
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
 mod ast;
+mod error;
 pub mod parser;
 mod ty;

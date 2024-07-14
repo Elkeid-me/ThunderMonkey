@@ -17,14 +17,16 @@
 
 mod expr;
 
-use super::ast::{ExprConst::*, ExprInner::*, *};
+use super::ast::{ExprCategory::*, ExprInner::*, *};
+use super::error::{CompilerError, ErrorNumber::*};
 use super::ty::Type::{self, *};
-use crate::error::{CompilerError, ErrorNumber::*};
+use crate::risk;
 use pest::pratt_parser::Assoc::{Left, Right};
 use pest::pratt_parser::{Op, PrattParser};
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::vec;
 
 #[derive(Parser)]
 #[grammar = "frontend/sysy.pest"]
@@ -48,88 +50,111 @@ pub struct ASTBuilder {
     depth: usize,
 }
 
-// trait InitListTrait {
-//     fn new_list(l: Vec<Self>) -> Self
-//     where
-//         Self: Sized;
-//     fn new_item(ast_builder: &ASTBuilder, expr: Pair<Rule>) -> Result<Self, String>
-//     where
-//         Self: Sized;
-//     fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self>
-//     where
-//         Self: Sized;
-//     fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self>
-//     where
-//         Self: Sized;
-//     fn generate_empty_list(len: &[usize]) -> Self;
-// }
+trait InitListTrait {
+    fn new_list(l: Vec<Self>) -> Self
+    where
+        Self: Sized;
+    fn new_item(ast_builder: &ASTBuilder, expr: Pair<Rule>, ty: &Type) -> Result<Self, CompilerError>
+    where
+        Self: Sized;
+    fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self>
+    where
+        Self: Sized;
+    // fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self>
+    // where
+    //     Self: Sized;
+    // fn generate_empty_list(len: &[usize]) -> Self;
+}
 
-// impl InitListTrait for ConstInitListItem {
-//     fn new_list(l: Vec<Self>) -> Self {
-//         Self::ConstInitList(Box::new(l))
-//     }
-//     fn new_item(ast_builder: &ASTBuilder, expr: Pair<Rule>) -> Result<Self, String> {
-//         match ast_builder.process_expr(expr)? {
-//             Num(i) => Ok(Self::Num(i)),
-//             expr => Err(format!("{expr:?} 不是整型常量表达式")),
-//         }
-//     }
-//     fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self> {
-//         risk!(v.last_mut().unwrap(), Self::ConstInitList(l) => l.as_mut())
-//     }
-//     fn generate_empty_list(len: &[usize]) -> Self {
-//         match len.len() {
-//             0 => Self::Num(0),
-//             _ => Self::new_list(repeat(Self::generate_empty_list(&len[1..])).take(len[0]).collect()),
-//         }
-//     }
-//     fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self> {
-//         let empty_list = Self::generate_empty_list(&len[1..]);
-//         let empty_list_n = len[0] - init_list.len();
-//         init_list
-//             .into_iter()
-//             .map(|item| match item {
-//                 Self::ConstInitList(list) => Self::ConstInitList(Box::new(Self::add_empty_list(&len[1..], *list))),
-//                 i => i,
-//             })
-//             .chain(repeat(empty_list).take(empty_list_n))
-//             .collect()
-//     }
-// }
+impl InitListTrait for ConstInitListItem {
+    fn new_list(l: Vec<Self>) -> Self {
+        Self::ConstInitList(Box::new(l))
+    }
+    fn new_item(ast_builder: &ASTBuilder, expr: Pair<Rule>, ty: &Type) -> Result<Self, CompilerError> {
+        let line_col = expr.line_col();
+        match (ast_builder.parse_expr(expr)?, ty) {
+            (Expr { inner: Integer(i), .. }, Int) => Ok(Self::Int(i)),
+            (Expr { inner: Floating(f), .. }, Int) => Ok(Self::Int(f as i32)),
+            (Expr { inner: Integer(i), .. }, Float) => Ok(Self::Float(i as f32)),
+            (Expr { inner: Floating(f), .. }, Float) => Ok(Self::Float(f)),
+            (Expr { inner: _, ty: Int | Float, .. }, _) => Err(CompilerError { error_number: NotConst, line_col }),
+            (Expr { inner: _, ty, .. }, _) => {
+                Err(CompilerError { error_number: IncompatibleType(ty.clone(), vec![Int, Float]), line_col })
+            }
+        }
+    }
+    fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self> {
+        risk!(v.last_mut().unwrap(), Self::ConstInitList(l) => l.as_mut())
+    }
+    // fn generate_empty_list(len: &[usize]) -> Self {
+    //     match len.len() {
+    //         0 => Self::Num(0),
+    //         _ => Self::new_list(repeat(Self::generate_empty_list(&len[1..])).take(len[0]).collect()),
+    //     }
+    // }
+    // fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self> {
+    //     let empty_list = Self::generate_empty_list(&len[1..]);
+    //     let empty_list_n = len[0] - init_list.len();
+    //     init_list
+    //         .into_iter()
+    //         .map(|item| match item {
+    //             Self::ConstInitList(list) => Self::ConstInitList(Box::new(Self::add_empty_list(&len[1..], *list))),
+    //             i => i,
+    //         })
+    //         .chain(repeat(empty_list).take(empty_list_n))
+    //         .collect()
+    // }
+}
 
-// impl InitListTrait for InitListItem {
-//     fn new_list(l: Vec<Self>) -> Self {
-//         Self::InitList(Box::new(l))
-//     }
-//     fn new_item(ast_builder: &ASTBuilder, expr: Pair<Rule>) -> Result<Self, String> {
-//         match ast_builder.process_expr_impl(expr)? {
-//             (expr, Int, _) => Ok(Self::Expr(expr)),
-//             (expr, _, _) => Err(format!("{expr:?} 不是整型表达式")),
-//         }
-//     }
-//     fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self> {
-//         risk!(v.last_mut().unwrap(), Self::InitList(l) => l.as_mut())
-//     }
-//     fn generate_empty_list(len: &[usize]) -> Self {
-//         match len.len() {
-//             0 => Self::Expr(Num(0)),
-//             _ => Self::new_list(repeat(Self::generate_empty_list(&len[1..])).take(len[0]).collect()),
-//         }
-//     }
-//     fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self> {
-//         let empty_list = Self::generate_empty_list(&len[1..]);
-//         let empty_list_n = len[0] - init_list.len();
-//         init_list
-//             .into_iter()
-//             .map(|item| match item {
-//                 Self::InitList(list) => Self::InitList(Box::new(Self::add_empty_list(&len[1..], *list))),
-//                 expr => expr,
-//             })
-//             .chain(repeat(empty_list).take(empty_list_n))
-//             .collect()
-//     }
-// }
-type Signature = (String, Type, Vec<Type>, Vec<Option<String>>);
+impl InitListTrait for InitListItem {
+    fn new_list(l: Vec<Self>) -> Self {
+        Self::InitList(Box::new(l))
+    }
+    fn new_item(ast_builder: &ASTBuilder, expr: Pair<Rule>, ty: &Type) -> Result<Self, CompilerError> {
+        let line_col = expr.line_col();
+        match (ast_builder.parse_expr(expr)?, ty) {
+            (Expr { inner: Integer(i), .. }, Int) => {
+                Ok(Self::Expr(Expr { inner: Integer(i), ty: Int, category: RValue, is_const: true }))
+            }
+            (Expr { inner: Floating(f), .. }, Int) => {
+                Ok(Self::Expr(Expr { inner: Integer(f as i32), ty: Int, category: RValue, is_const: true }))
+            }
+            (Expr { inner: Integer(i), .. }, Float) => {
+                Ok(Self::Expr(Expr { inner: Floating(i as f32), ty: Int, category: RValue, is_const: true }))
+            }
+            (Expr { inner: Floating(f), .. }, Float) => {
+                Ok(Self::Expr(Expr { inner: Floating(f), ty: Int, category: RValue, is_const: true }))
+            }
+            (Expr { inner, ty: Int, category, is_const }, _) => Ok(Self::Expr(Expr { inner, ty: Int, category, is_const })),
+            (Expr { inner, ty: Float, category, is_const }, _) => Ok(Self::Expr(Expr { inner, ty: Float, category, is_const })),
+            (Expr { inner: _, ty, .. }, _) => {
+                Err(CompilerError { error_number: IncompatibleType(ty.clone(), vec![Int, Float]), line_col })
+            }
+        }
+    }
+    fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self> {
+        risk!(v.last_mut().unwrap(), Self::InitList(l) => l.as_mut())
+    }
+    // fn generate_empty_list(len: &[usize]) -> Self {
+    //     match len.len() {
+    //         0 => Self::Expr(Num(0)),
+    //         _ => Self::new_list(repeat(Self::generate_empty_list(&len[1..])).take(len[0]).collect()),
+    //     }
+    // }
+    // fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self> {
+    //     let empty_list = Self::generate_empty_list(&len[1..]);
+    //     let empty_list_n = len[0] - init_list.len();
+    //     init_list
+    //         .into_iter()
+    //         .map(|item| match item {
+    //             Self::InitList(list) => Self::InitList(Box::new(Self::add_empty_list(&len[1..], *list))),
+    //             expr => expr,
+    //         })
+    //         .chain(repeat(empty_list).take(empty_list_n))
+    //         .collect()
+    // }
+}
+type Signature = (String, Type, Vec<Type>, Vec<String>);
 impl ASTBuilder {
     fn new() -> Self {
         let expr_parser = PrattParser::new()
@@ -175,10 +200,10 @@ impl ASTBuilder {
         self.depth == 1
     }
 
-    fn search(&self, id: &str) -> Option<&Definition> {
+    fn search(&self, id: &str) -> Option<Handler> {
         for map in self.table.iter().rev() {
             if let Some(handler) = map.get(id) {
-                return self.symbol_table.get(handler);
+                return Some(*handler);
             }
         }
         None
@@ -193,13 +218,13 @@ impl ASTBuilder {
                     self.symbol_table.get_mut(old_handler).unwrap().init = init;
                     Ok(*old_handler)
                 }
-                _ => Err(CompilerError { error_number: Redefinition }),
+                _ => Err(CompilerError { error_number: Redefinition, line_col: (0, 0) }),
             }
         } else {
             let handler = self.counter.get();
             self.table.last_mut().unwrap().insert(id.clone(), handler);
             self.symbol_table
-                .insert(handler, Definition { id, init, ty, is_global: self.is_arg_now(), is_arg: self.is_arg_now() });
+                .insert(handler, Definition { id, init, ty, is_global: self.is_global_now(), is_arg: self.is_arg_now() });
             Ok(handler)
         }
     }
@@ -216,96 +241,100 @@ impl ASTBuilder {
         iter.map_or(Ok(Vec::new()), |iter| {
             iter.into_inner()
                 .map(|expr| {
+                    let line_col = expr.line_col();
                     let Expr { inner, .. } = self.parse_expr(expr)?;
                     match inner {
-                        Integer(i) => {
-                            if i >= 0 {
-                                Ok(i as usize)
-                            } else {
-                                Err(CompilerError { error_number: NegaInt })
-                            }
-                        }
-                        _ => Err(CompilerError { error_number: NotConstInt }),
+                        Integer(i) if i >= 0 => Ok(i as usize),
+                        Integer(_) => Err(CompilerError { error_number: NegaInt, line_col }),
+                        _ => Err(CompilerError { error_number: NotConstInt, line_col }),
                     }
                 })
                 .collect::<Result<_, _>>()
         })
     }
 
-    // fn parse_init_list_impl<T>(&self, init_list: Pair<Rule>, len_prod: &[usize]) -> Result<(Vec<T>, usize), String>
-    // where
-    //     T: InitListTrait,
-    // {
-    //     let mut v = Vec::new();
-    //     let mut sum = 0usize;
-    //     for ele in init_list.into_inner() {
-    //         match ele.as_rule() {
-    //             Rule::initializer_list => {
-    //                 if len_prod.len() == 1 || sum % len_prod[0] != 0 {
-    //                     return Err(format!("{ele:?} 不能是初始化列表"));
-    //                 }
-    //                 //   对于 `int lint[1][14][51][4]`，我们计算一个列表：`L = {4, 204, 2856, 2856}`，这个数组给出了每一层的大小.
-    //                 //                                                      ^   ^    ^     ^
-    //                 //                                                      |   |    |     |
-    //                 //                                                      0   1    2     3
-    //                 //   rev_depth 给出了列表中第一个不能被 sum 整除的元素的下标.
-    //                 //   rev_depth == 0 -> 错误，即当前已经填充完毕的元素的个数不能被 L[0] 整除
-    //                 //   rev_depth == 1 -> init_list 对应最内层的列表. 譬如 int array[4][3][2]，init_list 对应 int[2].
-    //                 // 而此时需要寻位到 `v` 的第 2 层（以最外层为 1 层），然后 push.
-    //                 //   换句话说，寻位的次数是 l.len() - rev_depth.
-    //                 //   若 sum == 0，则 position 返回 None. unwrap 为 0.
+    fn parse_init_list_impl<T>(
+        &self,
+        init_list: Pair<Rule>,
+        len_prod: &[usize],
+        ty: &Type,
+    ) -> Result<(Vec<T>, usize), CompilerError>
+    where
+        T: InitListTrait,
+    {
+        let line_col = init_list.line_col();
+        let mut v = Vec::new();
+        let mut sum = 0usize;
+        for ele in init_list.into_inner() {
+            match ele.as_rule() {
+                Rule::initializer_list => {
+                    if len_prod.len() == 1 || sum % len_prod[0] != 0 {
+                        return Err(CompilerError { error_number: ListShouldBeScalar, line_col: ele.line_col() });
+                    }
+                    //   对于 `int lint[1][14][51][4]`，计算一个列表：`L = {4, 204, 2856, 2856}`，这个列表给出了每一层的大小.
+                    //                                                   ^   ^    ^     ^
+                    //                                                   |   |    |     |
+                    //                                                   0   1    2     3
+                    //   rev_depth 给出了列表中第一个不能被 sum 整除的元素的下标.
+                    //   rev_depth == 0 -> 错误，即当前已经填充完毕的元素的个数不能被 L[0] 整除
+                    //   rev_depth == 1 -> init_list 对应最内层的列表. 譬如 int array[4][3][2]，init_list 对应 int[2].
+                    // 而此时需要 `get_last` 到 `v` 的第 2 层（以最外层为 1 层），然后 push.
+                    //   换句话说，`get_last` 的次数是 l.len() - rev_depth.
+                    //   若 sum == 0，则 position 返回 None. unwrap 为 0.
 
-    //                 //   对于 `int lint[1][14][51][4]`，rev_depth == 3 时，意味着 init_list 对应 int[14][51][4]
-    //                 // 需要寻位 0 次
-    //                 let rev_depth = len_prod.iter().position(|prod| sum % prod != 0).unwrap_or(len_prod.len() - 1);
-    //                 let depth = len_prod.len() - rev_depth - 1;
-    //                 let (l, s) = self.parse_init_list_impl(ele, &len_prod[0..rev_depth])?;
-    //                 let v_ref = (0..depth).fold(&mut v, |state, _| {
-    //                     if state.is_empty() {
-    //                         state.push(T::new_list(Vec::new()));
-    //                     }
-    //                     T::get_last(state)
-    //                 });
-    //                 v_ref.push(T::new_list(l));
-    //                 sum += s;
-    //             }
-    //             Rule::expression => {
-    //                 let v_ref = len_prod.iter().rev().skip(1).fold(&mut v, |state, i| {
-    //                     if state.is_empty() || sum % i == 0 {
-    //                         state.push(T::new_list(Vec::new()));
-    //                     }
-    //                     T::get_last(state)
-    //                 });
-    //                 v_ref.push(T::new_item(self, ele)?);
-    //                 sum += 1;
-    //             }
-    //             _ => unreachable!(),
-    //         }
-    //         if sum > *len_prod.last().unwrap() {
-    //             return Err("初始化列表过长".to_string());
-    //         }
-    //     }
-    //     Ok((v, *len_prod.last().unwrap()))
-    // }
-    // fn parse_init_list<T>(&self, init_list: Pair<Rule>, lengths: &[usize]) -> Result<Vec<T>, String>
-    // where
-    //     T: InitListTrait,
-    // {
-    //     let len_prod: Vec<usize> = lengths
-    //         .iter()
-    //         .rev()
-    //         .scan(1, |l, &r| {
-    //             *l *= r;
-    //             Some(*l)
-    //         })
-    //         .collect();
-    //     Ok(T::add_empty_list(lengths, self.parse_init_list_impl::<T>(init_list, &len_prod)?.0))
-    // }
+                    //   对于 `int lint[1][14][51][4]`，rev_depth == 3 时，意味着 init_list 对应 int[14][51][4]
+                    // 需要 `get_last` 0 次
+                    let rev_depth = len_prod.iter().position(|prod| sum % prod != 0).unwrap_or(len_prod.len() - 1);
+                    let depth = len_prod.len() - rev_depth - 1;
+                    let (l, s) = self.parse_init_list_impl(ele, &len_prod[0..rev_depth], ty)?;
+                    let v_ref = (0..depth).fold(&mut v, |state, _| {
+                        if state.is_empty() {
+                            state.push(T::new_list(Vec::new()));
+                        }
+                        T::get_last(state)
+                    });
+                    v_ref.push(T::new_list(l));
+                    sum += s;
+                }
+                Rule::expression => {
+                    let v_ref = len_prod.iter().rev().skip(1).fold(&mut v, |state, i| {
+                        if state.is_empty() || sum % i == 0 {
+                            state.push(T::new_list(Vec::new()));
+                        }
+                        T::get_last(state)
+                    });
+                    v_ref.push(T::new_item(self, ele, ty)?);
+                    sum += 1;
+                }
+                _ => unreachable!(),
+            }
+            if sum > *len_prod.last().unwrap() {
+                return Err(CompilerError { error_number: InitListTooLong, line_col });
+            }
+        }
+        Ok((v, *len_prod.last().unwrap()))
+    }
+    fn parse_init_list<T>(&self, init_list: Pair<Rule>, lengths: &[usize], ty: &Type) -> Result<Vec<T>, CompilerError>
+    where
+        T: InitListTrait,
+    {
+        let len_prod: Vec<usize> = lengths
+            .iter()
+            .rev()
+            .scan(1, |l, &r| {
+                *l *= r;
+                Some(*l)
+            })
+            .collect();
+        let (list, _) = self.parse_init_list_impl::<T>(init_list, &len_prod, ty)?;
+        Ok(list)
+        // Ok(T::add_empty_list(lengths, self.parse_init_list_impl::<T>(init_list, &len_prod)?.0))
+    }
 
     fn parse_definition(&mut self, pair: Pair<Rule>) -> Result<Vec<Handler>, CompilerError> {
         match pair.as_rule() {
             Rule::const_definitions => {
-                let mut iter = pair.into_inner().filter(|p| matches!(p.as_rule(), Rule::const_keyword));
+                let mut iter = pair.into_inner().filter(|p| !matches!(p.as_rule(), Rule::const_keyword));
                 let ty = match iter.next().unwrap().as_rule() {
                     Rule::int_keyword => Int,
                     Rule::float_keyword => Float,
@@ -316,8 +345,8 @@ impl ASTBuilder {
                         let mut iter = pair.into_inner();
                         let id = iter.next().unwrap().as_str().to_string();
                         let init = self.parse_expr(iter.next().unwrap())?;
-                        if !matches!(init.is_const, ConstEval) {
-                            return Err(CompilerError { error_number: NotConst });
+                        if !init.is_const {
+                            return Err(CompilerError { error_number: NotConst, line_col: (0, 0) });
                         }
                         let init = match (init.inner, &ty) {
                             (Integer(i), Int) => Init::ConstInt(i),
@@ -328,7 +357,13 @@ impl ASTBuilder {
                         };
                         self.insert_definition(id, ty.clone(), Some(init))
                     }
-                    Rule::const_array_definition => todo!(),
+                    Rule::const_array_definition => {
+                        let mut iter = pair.into_inner();
+                        let id = iter.next().unwrap().as_str().to_string();
+                        let len = self.iter_to_vec(iter.next())?;
+                        let init_list = self.parse_init_list(iter.next().unwrap(), &len, &ty)?;
+                        self.insert_definition(id, Array(Box::new(ty.clone()), len), Some(Init::ConstList(init_list)))
+                    }
                     _ => unreachable!(),
                 })
                 .collect::<Result<Vec<_>, _>>()
@@ -346,57 +381,32 @@ impl ASTBuilder {
                         let id = iter.next().unwrap().as_str().to_string();
                         match iter.next() {
                             Some(expr) => {
+                                let line_col = expr.line_col();
                                 let expr = self.parse_expr(expr)?;
                                 if !matches!(&expr.ty, Int | Float) {
-                                    return Err(CompilerError { error_number: InitIncompatibleType });
+                                    return Err(CompilerError { error_number: IncompatibleType(expr.ty, vec![Int, Float]), line_col });
                                 }
                                 self.insert_definition(id, ty.clone(), Some(Init::Expr(expr)))
                             }
                             None => self.insert_definition(id, ty.clone(), None),
                         }
                     }
-                    Rule::array_definition => todo!(),
+                    Rule::array_definition => {
+                        let mut iter = pair.into_inner();
+                        let id = iter.next().unwrap().as_str().to_string();
+                        let len = self.iter_to_vec(iter.next())?;
+                        match iter.next() {
+                            Some(i) => {
+                                let init_list = self.parse_init_list(i, &len, &ty)?;
+                                self.insert_definition(id, Array(Box::new(ty.clone()), len), Some(Init::List(init_list)))
+                            }
+                            None => self.insert_definition(id, Array(Box::new(ty.clone()), len), None),
+                        }
+                    }
                     _ => unreachable!(),
                 })
                 .collect::<Result<Vec<_>, _>>()
             }
-            // Rule::const_variable_definition => {
-            //     let mut iter = pair.into_inner();
-            //     let id = iter.next().unwrap().as_str().to_string();
-            //     match self.process_expr_impl(iter.next().unwrap())? {
-            //         (Integer(i), _, ConstEval) => self.insert_definition(id, Int, Some(Init::Const(i))),
-            //         (expr, _, _) => Err(format!("{expr:?} 不是整型常量表达式")),
-            //     }
-            // }
-            // Rule::variable_definition => {
-            //     let mut iter = pair.into_inner();
-            //     let id = iter.next().unwrap().as_str().to_string();
-            //     match iter.next().map(|expr| self.process_expr_impl(expr)) {
-            //         Some(Ok((expr, RefType::Int, _))) => self.insert_definition(id, Int, Some(Init::Expr(expr))),
-            //         Some(Ok((expr, _, _))) => Err(format!("{expr:?} 不是整型表达式")),
-            //         Some(Err(s)) => Err(s),
-            //         None => self.insert_definition(id, Int, None),
-            //     }
-            // }
-            // Rule::const_array_definition => {
-            //     let mut iter = pair.into_inner();
-            //     let id = iter.next().unwrap().as_str().to_string();
-            //     let len = self.iter_to_vec(iter.next())?;
-            //     let init_list = self.parse_init_list(iter.next().unwrap(), &len)?;
-            //     self.insert_definition(id, IntArray(len), Some(Init::ConstList(init_list)))
-            // }
-            // Rule::array_definition => {
-            //     let mut iter = pair.into_inner();
-            //     let id = iter.next().unwrap().as_str().to_string();
-            //     let len = self.iter_to_vec(iter.next())?;
-            //     match iter.next() {
-            //         Some(i) => {
-            //             let init_list = self.parse_init_list(i, &len)?;
-            //             self.insert_definition(id, IntArray(len), Some(Init::List(init_list)))
-            //         }
-            //         None => self.insert_definition(id, IntArray(len), None),
-            //     }
-            // }
             _ => unreachable!(),
         }
     }
@@ -404,12 +414,19 @@ impl ASTBuilder {
     fn parse_if_while_helper(&mut self, pair: Pair<Rule>, in_while: bool, ret_type: &Type) -> Result<Block, CompilerError> {
         match pair.as_rule() {
             Rule::block => self.parse_block(pair, in_while, ret_type),
+            Rule::empty_statement => Ok(Vec::new()),
             Rule::expression
             | Rule::return_statement
             | Rule::if_statement
             | Rule::while_statement
             | Rule::break_keyword
             | Rule::continue_keyword => Ok(vec![BlockItem::Statement(self.parse_statement(pair, in_while, ret_type)?)]),
+            Rule::const_definitions | Rule::definitions => {
+                self.enter_scope();
+                let ret = Ok(vec![BlockItem::Def(self.parse_definition(pair)?)]);
+                self.exit_scope();
+                ret
+            }
             _ => unreachable!(),
         }
     }
@@ -439,9 +456,15 @@ impl ASTBuilder {
             Rule::expression => Ok(Statement::Expr(self.parse_expr(iter)?)),
             Rule::return_statement => match (iter.into_inner().nth(1).map(|expr| self.parse_expr(expr)), ret_type) {
                 (None, Void) => Ok(Statement::Return(None)),
-                (Some(Ok(e)), Int | Float) => Ok(Statement::Return(Some(e))),
-                (Some(Err(err)), _) => todo!(),
-                _ => todo!(),
+                (Some(Ok(expr)), Int | Float) => match &expr.ty {
+                    Int | Float => Ok(Statement::Return(Some(expr))),
+                    _ => Err(CompilerError { error_number: IncompatibleType(expr.ty, vec![Int, Float]), line_col: (0, 0) }),
+                },
+                (Some(Err(err)), _) => Err(err),
+                (Some(Ok(Expr { inner: _, ty, .. })), Void) => {
+                    Err(CompilerError { error_number: IncompatibleType(ty, vec![Void]), line_col: (0, 0) })
+                }
+                _ => unreachable!(),
             },
             Rule::if_statement => self.parse_if(iter, in_while, ret_type),
             Rule::while_statement => self.parse_while(iter, ret_type),
@@ -449,14 +472,14 @@ impl ASTBuilder {
                 if in_while {
                     Ok(Statement::Break)
                 } else {
-                    Err(CompilerError { error_number: BreakNotInLoop })
+                    Err(CompilerError { error_number: BreakNotInLoop, line_col: iter.line_col() })
                 }
             }
             Rule::continue_keyword => {
                 if in_while {
                     Ok(Statement::Continue)
                 } else {
-                    Err(CompilerError { error_number: ContinueNotInLoop })
+                    Err(CompilerError { error_number: ContinueNotInLoop, line_col: iter.line_col() })
                 }
             }
             _ => unreachable!(),
@@ -467,7 +490,7 @@ impl ASTBuilder {
         self.enter_scope();
         let block = block
             .into_inner()
-            .filter(|pair| !matches!(pair.as_rule(), Rule::int_keyword | Rule::const_keyword))
+            .filter(|pair| !matches!(pair.as_rule(), Rule::empty_statement))
             .map(|pair| match pair.as_rule() {
                 Rule::block => Ok(BlockItem::Block(self.parse_block(pair, in_while, ret_type)?)),
                 Rule::expression
@@ -504,31 +527,22 @@ impl ASTBuilder {
                         Rule::float_keyword => Float,
                         _ => unreachable!(),
                     };
+                    let id = iter.next().unwrap().as_str().to_string();
                     para_type.push(ty);
-                    para_id.push(Some(iter.next().unwrap().as_str().to_string()));
+                    para_id.push(id);
                 }
-                // Rule::ptr_parameter => {
-                //     let mut iter = para.into_inner().skip(1);
-                //     let id = iter.next().unwrap().as_str().to_string();
-                //     let lengths = self.iter_to_vec(iter.next())?;
-                //     para_id.push(Some(id));
-                //     para_type.push(IntPointer(lengths));
-                // }
-                Rule::var_parameter_no_name => {
+                Rule::ptr_parameter => {
                     let mut iter = para.into_inner();
                     let ty = match iter.next().unwrap().as_rule() {
                         Rule::int_keyword => Int,
                         Rule::float_keyword => Float,
                         _ => unreachable!(),
                     };
-                    para_type.push(ty);
-                    para_id.push(None);
+                    let id = iter.next().unwrap().as_str().to_string();
+                    let lens = self.iter_to_vec(iter.next())?;
+                    para_type.push(Pointer(Box::new(ty), lens));
+                    para_id.push(id);
                 }
-                // Rule::ptr_parameter_no_name => {
-                //     let lengths = self.iter_to_vec(para.into_inner().nth(1))?;
-                //     para_id.push(None);
-                //     para_type.push(IntPointer(lengths));
-                // }
                 _ => unreachable!(),
             }
         }
@@ -538,24 +552,29 @@ impl ASTBuilder {
     fn parse_function(&mut self, func: Pair<Rule>) -> Result<Vec<Handler>, CompilerError> {
         let mut iter = func.into_inner();
         let (id, ret_type, para_type, para_id) = self.parse_signature(iter.next().unwrap())?;
-        self.enter_scope();
-        for (ty, id) in para_type.into_iter().zip(para_id.into_iter()) {
-            if let Some(i) = id {
-                self.insert_definition(i, ty, None);
+        let is_entry = matches!(id.as_str(), "main");
+        let handler = match iter.next() {
+            Some(i) => {
+                self.enter_scope();
+                let arg_handlers = para_type
+                    .iter()
+                    .zip(para_id.iter())
+                    .map(|(ty, id)| self.insert_definition(id.clone(), ty.clone(), None))
+                    .collect::<Result<Vec<_>, _>>()?;
+                self.insert_definition(id.clone(), Function(Box::new(ret_type.clone()), para_type.clone()), None)?;
+                let block = self.parse_block(i, false, &ret_type)?;
+                self.exit_scope();
+                self.insert_definition(
+                    id,
+                    Function(Box::new(ret_type), para_type),
+                    Some(Init::Function { block, is_entry, arg_handlers }),
+                )
             }
-        }
-        match iter.next() {
-            Some(_) => todo!(),
-            None => todo!(),
-        }
-        let block = self.parse_block(iter.next().unwrap(), false, &ret_type)?;
-        self.exit_scope();
-        let is_entry = false;
-        let handler = self.insert_definition(
-            id,
-            Function(Box::new(ret_type.clone()), para_type.clone()),
-            Some(Init::Function { block, is_entry }),
-        )?;
+            None => {
+                self.exit_scope();
+                self.insert_definition(id, Function(Box::new(ret_type), para_type), None)
+            }
+        }?;
         Ok(vec![handler])
     }
 
@@ -568,31 +587,45 @@ impl ASTBuilder {
     }
 
     fn parse(mut self, code: &str) -> Result<TranslationUnit, CompilerError> {
+        let mut ast = Vec::new();
+        let mut set = HashSet::new();
         let sysy_lib = [
             (Function(Box::new(Int), Vec::new()), "getint".to_string()),
             (Function(Box::new(Int), Vec::new()), "getch".to_string()),
             (Function(Box::new(Float), Vec::new()), "getfloat".to_string()),
-            (Function(Box::new(Int), vec![Pointer(Box::new(Int))]), "getarray".to_string()),
-            (Function(Box::new(Int), vec![Pointer(Box::new(Float))]), "getfarray".to_string()),
+            (Function(Box::new(Int), vec![Pointer(Box::new(Int), Vec::new())]), "getarray".to_string()),
+            (Function(Box::new(Int), vec![Pointer(Box::new(Float), Vec::new())]), "getfarray".to_string()),
             (Function(Box::new(Void), vec![Int]), "putint".to_string()),
             (Function(Box::new(Void), vec![Int]), "putch".to_string()),
             (Function(Box::new(Void), vec![Float]), "putfloat".to_string()),
-            (Function(Box::new(Void), vec![Int, Pointer(Box::new(Int))]), "putarray".to_string()),
-            (Function(Box::new(Void), vec![Int, Pointer(Box::new(Float))]), "putfarray".to_string()),
+            (Function(Box::new(Void), vec![Int, Pointer(Box::new(Int), Vec::new())]), "putarray".to_string()),
+            (Function(Box::new(Void), vec![Int, Pointer(Box::new(Float), Vec::new())]), "putfarray".to_string()),
             (Function(Box::new(Void), vec![VAList]), "putf".to_string()),
             (Function(Box::new(Void), Vec::new()), "starttime".to_string()),
             (Function(Box::new(Void), Vec::new()), "stoptime".to_string()),
         ]
         .into_iter()
-        .map(|(ty, id)| self.insert_definition(id, ty, None))
-        .collect::<Result<Vec<_>, _>>()?;
-
-        let ast = SysYParser::parse(Rule::translation_unit, code)
+        .map(|(ty, id)| self.insert_definition(id, ty, None));
+        for i in sysy_lib {
+            let handler = i?;
+            if !set.contains(&handler) {
+                ast.push(handler);
+                set.insert(handler);
+            }
+        }
+        let ast_iter = SysYParser::parse(Rule::translation_unit, code)
             .unwrap()
             .filter(|pair| !matches!(pair.as_rule(), Rule::EOI))
-            .map(|pair| self.parse_global_item(pair))
-            .collect::<Result<Vec<_>, _>>()?;
-        let ast = sysy_lib.into_iter().chain(ast.into_iter().flatten()).collect();
+            .map(|pair| self.parse_global_item(pair));
+        for i in ast_iter {
+            let i = i?;
+            for handler in i {
+                if !set.contains(&handler) {
+                    ast.push(handler);
+                    set.insert(handler);
+                }
+            }
+        }
         Ok(TranslationUnit { ast, symbol_table: self.symbol_table })
     }
 }
