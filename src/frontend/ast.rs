@@ -18,7 +18,7 @@
 use super::ty::Type;
 use std::collections::HashMap;
 
-pub type Handler = usize;
+pub type Handler = u32;
 
 #[derive(Debug)]
 pub struct Definition {
@@ -37,7 +37,7 @@ pub struct TranslationUnit {
 
 #[derive(Debug)]
 pub enum Init {
-    Function { block: Block, is_entry: bool, arg_handlers: Vec<usize> },
+    Function { block: Block, is_entry: bool, arg_handlers: Vec<Handler> },
     Expr(Expr),
     ConstInt(i32),
     ConstFloat(f32),
@@ -145,4 +145,8 @@ pub struct Expr {
 pub enum ExprCategory {
     LValue,
     RValue,
+}
+
+fn print_def(translation_unit: TranslationUnit, handler: Handler) {
+
 }

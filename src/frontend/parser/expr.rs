@@ -21,7 +21,7 @@ use crate::frontend::parser::{ASTBuilder, Rule};
 use crate::frontend::ty::Type::{self, *};
 use libc::strtof;
 use pest::iterators::Pair;
-use std::ptr::null_mut;
+use core::ptr::null_mut;
 
 fn parse_integer(expr: Pair<Rule>) -> Result<Expr, CompilerError> {
     match expr.as_rule() {
@@ -398,7 +398,7 @@ impl ASTBuilder {
     }
 
     // len 是指针长度
-    fn check_pointer(&self, subscripts: Vec<Expr>, handler: usize, base: &Type, lens: &[usize]) -> Result<Expr, CompilerError> {
+    fn check_pointer(&self, subscripts: Vec<Expr>, handler: Handler, base: &Type, lens: &[usize]) -> Result<Expr, CompilerError> {
         for expr in subscripts.iter() {
             if !matches!(expr.ty, Int) {
                 return Err(CompilerError { error_number: IncompatibleType(expr.ty.clone(), vec![Int]), line_col: (0, 0) });
@@ -421,141 +421,4 @@ impl ASTBuilder {
             }),
         }
     }
-
-    // // len 是指针长度
-    // fn check_pointer(&self, exprs: &[Expr], len: [usize]) -> Result<(Type, ExprCategory, ExprConst), String> {
-    //     for expr in exprs {
-    //         if !matches!(self.expr_type(expr)?, RefInt) {
-    //             return Err(format!("{expr:?} 不是整型表达式"));
-    //         }
-    //     }
-    //     match (exprs.len() - 1).cmp(&len.len()) {
-    //         std::cmp::Ordering::Less => Ok((RefIntPointer(&len[exprs.len()..]), RValue, false)),
-    //         std::cmp::Ordering::Equal => Ok((RefInt, LValue, false)),
-    //         std::cmp::Ordering::Greater => Err("下标运算符不能应用于整型对象".to_string()),
-    //     }
-    // }
-
-    // // 返回值：表达式的值类型、是否为可修改左值、是否为整型常量表达式
-    // fn expr_check(&self, expr: &Expr) -> Result<(RefType, ExprCategory, ExprConst), String> {
-    //     match expr {
-    //         Mul(l, r)
-    //         | Div(l, r)
-    //         | Mod(l, r)
-    //         | Add(l, r)
-    //         | Sub(l, r)
-    //         | ShL(l, r)
-    //         | ShR(l, r)
-    //         | Xor(l, r)
-    //         | And(l, r)
-    //         | Or(l, r)
-    //         | Eq(l, r)
-    //         | Neq(l, r)
-    //         | Grt(l, r)
-    //         | Geq(l, r)
-    //         | Les(l, r)
-    //         | Leq(l, r)
-    //         | LogicAnd(l, r)
-    //         | LogicOr(l, r) => match (self.expr_check(l)?, self.expr_check(r)?) {
-    //             ((RefInt, _, is_l_const), (RefInt, _, is_r_const)) => {
-    //                 Ok((RefInt, RValue, is_l_const & is_r_const))
-    //             }
-    //             _ => Err(format!("{l:?} 或 {r:?} 不是整型表达式")),
-    //         },
-
-    //         LogicNot(e) | Nega(e) | Not(e) => match self.expr_check(e)? {
-    //             (RefInt, _, is_const) => Ok((RefInt, RValue, is_const)),
-    //             _ => Err(format!("{e:?} 不是整型表达式")),
-    //         },
-
-    //         PostInc(e) | PostDec(e) => match self.expr_check(e)? {
-    //             (RefInt, LValue, _) => Ok((RefInt, RValue, false)),
-    //             _ => Err(format!("{e:?} 不是左值表达式")),
-    //         },
-
-    //         PreInc(e) | PreDec(e) => match self.expr_check(e)? {
-    //             (RefInt, LValue, _) => Ok((RefInt, LValue, false)),
-    //             _ => Err(format!("{e:?} 不是左值表达式")),
-    //         },
-
-    //         Assignment(l, r)
-    //         | AddAssign(l, r)
-    //         | SubAssign(l, r)
-    //         | MulAssign(l, r)
-    //         | AndAssign(l, r)
-    //         | OrAssign(l, r)
-    //         | XorAssign(l, r)
-    //         | ShLAssign(l, r)
-    //         | SaRAssign(l, r)
-    //         | DivAssign(l, r)
-    //         | ModAssign(l, r) => match (self.expr_check(l)?, self.expr_check(r)?) {
-    //             ((RefInt, LValue, _), (RefInt, _, _)) => Ok((RefInt, LValue, false)),
-    //             _ => Err(format!("{l:?} 或 {r:?} 不是整型表达式, 或 {l:?} 不是左值表达式")),
-    //         },
-
-    //         Num(_) => Ok((RefInt, RValue, true)),
-    //         Var(id) => match self.search(id) {
-    //             Some((Int, Some(Init::Const(_)))) => Ok((RefInt, RValue, true)), // const 变量
-    //             Some((Int, _)) => Ok((RefInt, LValue, false)),                     // 普通变量
-    //             Some((IntArray(_), Some(Init::ConstList(_)))) => Err("孤立的 const 数组似乎干不了什么事...".to_string()), // const 数组
-    //             Some((IntArray(len), _)) => Ok((RefIntPointer(&len[1..]), RValue, false)), // 普通数组
-    //             Some((IntPointer(len), _)) => Ok((RefIntPointer(len), RValue, false)),     // 普通指针
-    //             _ => Err(format!("标识符 {id} 在当前作用域不存在")),
-    //         },
-    //         Func(id, exprs) => match self.search(id) {
-    //             Some((Function(ret_type, paras_type), _)) => {
-    //                 if exprs.len() != paras_type.len() {
-    //                     return Err(format!("实参列表与函数 {id} 的签名不匹配"));
-    //                 }
-    //                 for (expect_type, expr) in paras_type.iter().zip(exprs.iter()) {
-    //                     let valid = match (expect_type, self.expr_type(expr)?) {
-    //                         (Int, RefInt) => true,
-    //                         (IntArray(l), RefIntArray(r)) | (IntPointer(l), RefIntPointer(r)) => l == r,
-    //                         (IntArray(l), RefIntPointer(r)) => &l[1..] == r,
-    //                         (IntPointer(l), RefIntArray(r)) => l == &r[1..],
-    //                         _ => false,
-    //                     };
-    //                     if !valid {
-    //                         return Err(format!("{expr:?} 与类型 {expect_type} 不兼容"));
-    //                     }
-    //                 }
-    //                 Ok((ret_type.to_ref_type(), RValue, false))
-    //             }
-    //             Some(_) => Err(format!("标识符 {id} 不是函数")),
-    //             None => Err(format!("标识符 {id} 在当前作用域中不存在")),
-    //         },
-    //         Array(id, exprs) => match self.search(id) {
-    //             // const 数组
-    //             Some((IntArray(len), Some(Init::ConstList(_)))) => match exprs.len().cmp(&len.len()) {
-    //                 std::cmp::Ordering::Less => Err(format!("常量数组 {id} 不能转为指针")),
-    //                 std::cmp::Ordering::Equal => {
-    //                     let mut const_eval = true;
-    //                     for expr in exprs {
-    //                         let (ty, _, is_const) = self.expr_check(expr)?;
-    //                         if !matches!(ty, RefInt) {
-    //                             return Err(format!("{expr:?} 不是整型表达式"));
-    //                         }
-    //                         const_eval &= matches!(is_const, true);
-    //                     }
-    //                     if const_eval {
-    //                         Ok((RefInt, RValue, true))
-    //                     } else {
-    //                         Ok((RefInt, RValue, false))
-    //                     }
-    //                 }
-    //                 std::cmp::Ordering::Greater => Err("下标运算符不能应用于整型对象".to_string()),
-    //             },
-    //             // 普通数组
-    //             Some((IntArray(len), _)) => self.check_pointer(exprs, &len[1..]),
-    //             // 普通指针
-    //             Some((IntPointer(len), _)) => self.check_pointer(exprs, len),
-    //             Some(_) => Err(format!("标识符 {id} 不是数组或指针")),
-    //             None => Err(format!("标识符 {id} 在当前作用域中不存在")),
-    //         },
-    //     }
-    // }
-
-    // fn expr_type(&self, expr: &Expr) -> Result<RefType, String> {
-    //     Ok(self.expr_check(expr)?.0)
-    // }
 }

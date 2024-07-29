@@ -26,18 +26,17 @@ use pest::pratt_parser::{Op, PrattParser};
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 use std::collections::{HashMap, HashSet};
-use std::vec;
 
 #[derive(Parser)]
 #[grammar = "frontend/sysy.pest"]
 struct SysYParser;
 
 struct Counter {
-    value: usize,
+    value: Handler,
 }
 
 impl Counter {
-    fn get(&mut self) -> usize {
+    fn get(&mut self) -> Handler {
         self.value += 1;
         self.value
     }
@@ -47,7 +46,7 @@ pub struct ASTBuilder {
     table: Vec<HashMap<String, Handler>>,
     symbol_table: HashMap<Handler, Definition>,
     counter: Counter,
-    depth: usize,
+    depth: u32,
 }
 
 trait InitListTrait {
