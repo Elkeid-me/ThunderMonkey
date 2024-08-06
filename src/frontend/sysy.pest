@@ -20,7 +20,7 @@
 /// `translation_unit`（翻译单元）为语法的根。
 
 WHITESPACE = _{ " " | "\t" | NEWLINE }
-COMMENT    = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") | ("//" ~ (!"\n" ~ ANY)* ~ ("\n" | EOI)) }
+// COMMENT    = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") | ("//" ~ (!"\n" ~ ANY)* ~ ("\n" | EOI)) }
 
 translation_unit = _{ SOI ~ global_item+ ~ EOI }
 

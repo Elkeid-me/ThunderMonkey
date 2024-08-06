@@ -37,8 +37,8 @@ macro_rules! risk {
 
 fn compile() -> Result<(), Box<dyn std::error::Error>> {
     let ParsedArgs { mode, input, output } = arg_parse::parse(std::env::args())?;
-    // let code = preprocess(read_to_string(input)?);
-    let code = read_to_string(input)?;
+    let code = preprocess(read_to_string(input)?);
+    // let code = read_to_string(input)?;
     let ast = frontend::parser::parse(&code)?;
     let mut f = File::create(output)?;
     match mode {

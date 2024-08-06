@@ -6,5 +6,5 @@ edition = "2021"
 [dependencies]
 pest = "^2.7"
 pest_derive = "^2.7"
-generator = "^0.8"
+genawaiter = "^0.99"
 libc = "^0.2"
