@@ -17,15 +17,14 @@
 
 /// # sysy.pest
 ///
-/// 用于不包含注释的 sysy 的解析器。注释由单独的预处理器负责。
-///
 /// `translation_unit`（翻译单元）为语法的根。
 
 WHITESPACE = _{ " " | "\t" | NEWLINE }
-COMMENT    = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") | ("//" ~ (!"\n" ~ ANY)* ~ "\n") }
+COMMENT    = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") | ("//" ~ (!"\n" ~ ANY)* ~ ("\n" | EOI)) }
+
 translation_unit = _{ SOI ~ global_item+ ~ EOI }
 
-identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+identifier  = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 global_item = _{ all_definitions | func_decl ~ ";" | func_def }
 
 func_def          =  { func_dec ~ block }
