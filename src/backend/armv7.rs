@@ -194,7 +194,7 @@ impl Display for Inst {
             Self::Sub(rd, rs_1, rs_2) => write!(f, "sub {rd}, {rs_1}, {rs_2}"),
             Self::And(rd, rs_1, rs_2) => write!(f, "and {rd}, {rs_1}, {rs_2}"),
             Self::Mul(rd, rs_1, rs_2) => write!(f, "mul {rd}, {rs_1}, {rs_2}"),
-            Self::Sdiv(rd, rs_1, rs_2) => todo!(),
+            Self::Sdiv(rd, rs_1, rs_2) => write!(f, "sdiv {rd}, {rs_1}, {rs_2}"),
 
             Self::Push(list) => {
                 let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
