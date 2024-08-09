@@ -96,29 +96,29 @@ fn function(
             IRItem::AddFloat => {
                 asm.add_inst(VPop(vec![S1, S0]));
                 asm.add_inst(VAddF32(S0, S0, S1));
-                asm.add_inst(Push(vec![S0]));
+                asm.add_inst(VPush(vec![S0]));
             }
             IRItem::SubFloat => {
                 asm.add_inst(VPop(vec![S1, S0]));
                 asm.add_inst(VSubF32(S0, S0, S1));
-                asm.add_inst(Push(vec![S0]));
+                asm.add_inst(VPush(vec![S0]));
             }
             IRItem::MulFloat => {
                 asm.add_inst(VPop(vec![S1, S0]));
                 asm.add_inst(VMulF32(S0, S0, S1));
-                asm.add_inst(Push(vec![S0]));
+                asm.add_inst(VPush(vec![S0]));
             }
             IRItem::DivFloat => {
                 asm.add_inst(VPop(vec![S1, S0]));
                 asm.add_inst(VDivF32(S0, S0, S1));
-                asm.add_inst(Push(vec![S0]));
+                asm.add_inst(VPush(vec![S0]));
             }
 
             IRItem::Mod => {
                 asm.add_inst(Pop(vec![R1, R0]));
                 asm.add_inst(La(R2, "__aeabi_idivmod".to_string()));
                 asm.add_inst(Bx(R2));
-                asm.add_inst(VPush(vec![R1]));
+                asm.add_inst(Push(vec![R1]));
             }
 
             IRItem::Sll => {
@@ -261,13 +261,13 @@ fn function(
             IRItem::CvtIF => {
                 asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(La(R1, "__aeabi_i2f".to_string()));
-                asm.add_inst(Bx(R1));
+                asm.add_inst(Blx(R1));
                 asm.add_inst(VPush(vec![S0]));
             }
             IRItem::CvtFI => {
                 asm.add_inst(VPop(vec![S0]));
                 asm.add_inst(La(R1, "__aeabi_f2iz".to_string()));
-                asm.add_inst(Bx(R1));
+                asm.add_inst(Blx(R1));
                 asm.add_inst(Push(vec![R0]));
             }
             IRItem::Br { then, or_else } => {
@@ -322,7 +322,7 @@ fn function(
                     "stoptime" => asm.add_inst(La(R8, format!("stoptime"))),
                     _ => asm.add_inst(La(R8, format!("__zvezda_label_{function}"))),
                 }
-                asm.add_inst(Bx(R8));
+                asm.add_inst(Blx(R8));
                 asm.add_inst(VPush(vec![S0]));
             }
             IRItem::CallInt { function, num_args: _ } => {
@@ -364,8 +364,8 @@ fn function(
                     "stoptime" => asm.add_inst(La(R8, format!("stoptime"))),
                     _ => asm.add_inst(La(R8, format!("__zvezda_label_{function}"))),
                 }
-                asm.add_inst(Bx(R8));
-                asm.add_inst(VPush(vec![R0]));
+                asm.add_inst(Blx(R8));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::CallVoid { function, num_args: _ } => {
                 let id = symbol_table.get(function).unwrap().id.as_str();
@@ -406,7 +406,7 @@ fn function(
                     "stoptime" => asm.add_inst(La(R8, format!("stoptime"))),
                     _ => asm.add_inst(La(R8, format!("__zvezda_label_{function}"))),
                 }
-                asm.add_inst(Bx(R8));
+                asm.add_inst(Blx(R8));
             }
             IRItem::Load => {
                 asm.add_inst(Pop(vec![R0]));
