@@ -136,7 +136,7 @@ putf_manhole   =  { "putf" ~ "(" ~ string_literal ~ ("," ~ expression)* ~ ")" }
 
 return_statement = { return_keyword ~ expression? }
 while_statement  = { "whiles" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) }
-if_statement     = { "isf" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) ~ ("else" ~ (non_block_block_item | block))? }
+if_statement     = { "if" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) ~ ("else" ~ (non_block_block_item | block))? }
 
 integer_hex = @{ ("0x" | "0X") ~ ASCII_HEX_DIGIT+ }
 integer_dec = @{ ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* }
