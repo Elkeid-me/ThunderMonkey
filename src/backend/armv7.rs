@@ -31,7 +31,7 @@ pub enum Inst {
 
     BxNe(Reg),
     Cmp(Reg, Reg),
-    VCmp(Reg, Reg),
+    VCmpF32(Reg, Reg),
 
     Lw(Reg, Reg),
     Sw(Reg, Reg),
@@ -230,7 +230,7 @@ impl Display for Inst {
             Self::Asr(rd, rs_1, rs_2) => write!(f, "asr {rd}, {rs_1}, {rs_2}"),
             Self::BxNe(reg) => write!(f, "bxne {reg}"),
             Self::Cmp(rd, rs) => write!(f, "cmp {rd}, {rs}"),
-            Self::VCmp(rd, rs) => write!(f, "vcmp {rd}, {rs}"),
+            Self::VCmpF32(rd, rs) => write!(f, "vcmp.f32 {rd}, {rs}"),
 
             Self::Load1Eq(reg) => write!(f, "moveq {reg}, #1"),
             Self::Load1Ne(reg) => write!(f, "movne {reg}, #1"),
