@@ -424,7 +424,7 @@ fn function(
                 } else {
                     let offset = c.get(var).unwrap();
                     asm.add_inst(Ldr(R0, *offset));
-                    asm.add_inst(Add(R0, R10, R11));
+                    asm.add_inst(Add(R0, R0, R11));
                     asm.add_inst(Push(vec![R0]));
                 }
             }
