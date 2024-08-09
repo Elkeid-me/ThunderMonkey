@@ -77,8 +77,7 @@ impl Generator {
                     IRItem::Label { addr: then_block_label },
                 ]);
                 ir.extend(then_block_ir);
-                ir.extend([IRItem::Jmp { label: next_label }, IRItem::Label { addr: next_label }]);
-                ir.push_back(IRItem::Label { addr: else_block_label });
+                ir.extend([IRItem::Jmp { label: next_label }, IRItem::Label { addr: else_block_label }]);
                 ir.extend(else_block_ir);
                 ir.extend([IRItem::Jmp { label: next_label }, IRItem::Label { addr: next_label }]);
                 ir

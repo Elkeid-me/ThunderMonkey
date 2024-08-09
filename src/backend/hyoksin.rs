@@ -94,7 +94,8 @@ fn function(
             IRItem::DivInt => {
                 asm.add_inst(Pop(R1));
                 asm.add_inst(Pop(R0));
-                asm.add_inst(Sdiv(R0, R0, R1));
+                asm.add_inst(Mov32Label(R2, "__aeabi_idiv".to_string()));
+                asm.add_inst(Blx(R2));
                 asm.add_inst(Push(R0));
             }
 
