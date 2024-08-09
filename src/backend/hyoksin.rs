@@ -68,8 +68,8 @@ fn function(
 
     asm.add_inst(Push(R11));
     asm.add_inst(Push(R14));
-    asm.add_inst(Mv(R11, R13));
-    asm.add_inst(Ldr(R0, stack_size));
+    asm.add_inst(Mov(R11, R13));
+    asm.add_inst(Mov32(R0, stack_size));
     asm.add_inst(Add(R11, R11, R0));
     for ir in code {
         match ir {
@@ -126,7 +126,7 @@ fn function(
             IRItem::Mod => {
                 asm.add_inst(Pop(R1));
                 asm.add_inst(Pop(R0));
-                asm.add_inst(La(R2, "__aeabi_idivmod".to_string()));
+                asm.add_inst(Mov32Label(R2, "__aeabi_idivmod".to_string()));
                 asm.add_inst(Blx(R2));
                 asm.add_inst(Push(R1));
             }
@@ -268,11 +268,11 @@ fn function(
             }
 
             IRItem::PushFloat(f) => {
-                asm.add_inst(Ldr(R0, f.to_bits() as i32));
+                asm.add_inst(Mov32(R0, f.to_bits() as i32));
                 asm.add_inst(Push(R0));
             }
             IRItem::PushInt(i) => {
-                asm.add_inst(Ldr(R0, *i));
+                asm.add_inst(Mov32(R0, *i));
                 asm.add_inst(Push(R0));
             }
 
@@ -288,69 +288,69 @@ fn function(
             }
             IRItem::CvtIF => {
                 asm.add_inst(Pop(R0));
-                asm.add_inst(La(R1, "__aeabi_i2f".to_string()));
+                asm.add_inst(Mov32Label(R1, "__aeabi_i2f".to_string()));
                 asm.add_inst(Blx(R1));
                 asm.add_inst(VPush(S0));
             }
             IRItem::CvtFI => {
                 asm.add_inst(VPop(S0));
-                asm.add_inst(La(R1, "__aeabi_f2iz".to_string()));
+                asm.add_inst(Mov32Label(R1, "__aeabi_f2iz".to_string()));
                 asm.add_inst(Blx(R1));
                 asm.add_inst(Push(R0));
             }
             IRItem::Br { then, or_else } => {
-                asm.add_inst(La(R2, format!("__zvezda_label_{then}")));
-                asm.add_inst(La(R3, format!("__zvezda_label_{or_else}")));
+                asm.add_inst(Mov32Label(R2, format!("__zvezda_label_{then}")));
+                asm.add_inst(Mov32Label(R3, format!("__zvezda_label_{or_else}")));
                 asm.add_inst(Pop(R0));
-                asm.add_inst(Ldr(R1, 0));
+                asm.add_inst(Mov32(R1, 0));
                 asm.add_inst(Cmp(R0, R1));
                 asm.add_inst(BxNe(R2));
                 asm.add_inst(Bx(R3));
             }
             IRItem::Jmp { label } => {
-                asm.add_inst(La(R0, format!("__zvezda_label_{label}")));
+                asm.add_inst(Mov32Label(R0, format!("__zvezda_label_{label}")));
                 asm.add_inst(Bx(R0));
             }
             IRItem::CallFloat { function, num_args: _ } => {
                 let id = symbol_table.get(function).unwrap().id.as_str();
                 match id {
-                    "getint" => asm.add_inst(La(R8, format!("getint"))),
-                    "getch" => asm.add_inst(La(R8, format!("getch"))),
-                    "getfloat" => asm.add_inst(La(R8, format!("getfloat"))),
+                    "getint" => asm.add_inst(Mov32Label(R8, format!("getint"))),
+                    "getch" => asm.add_inst(Mov32Label(R8, format!("getch"))),
+                    "getfloat" => asm.add_inst(Mov32Label(R8, format!("getfloat"))),
                     "getarray" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("getarray")));
+                        asm.add_inst(Mov32Label(R8, format!("getarray")));
                     }
                     "getfarray" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("getfarray")));
+                        asm.add_inst(Mov32Label(R8, format!("getfarray")));
                     }
                     "putint" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("putint")));
+                        asm.add_inst(Mov32Label(R8, format!("putint")));
                     }
                     "putch" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("putch")));
+                        asm.add_inst(Mov32Label(R8, format!("putch")));
                     }
                     "putfloat" => {
                         asm.add_inst(VPop(S0));
-                        asm.add_inst(La(R8, format!("putfloat")));
+                        asm.add_inst(Mov32Label(R8, format!("putfloat")));
                     }
                     "putarray" => {
                         asm.add_inst(Pop(R0));
                         asm.add_inst(Pop(R1));
-                        asm.add_inst(La(R8, format!("putarray")));
+                        asm.add_inst(Mov32Label(R8, format!("putarray")));
                     }
                     "putfarray" => {
                         asm.add_inst(Pop(R0));
                         asm.add_inst(Pop(R1));
-                        asm.add_inst(La(R8, format!("putfarray")));
+                        asm.add_inst(Mov32Label(R8, format!("putfarray")));
                     }
-                    "putf" => asm.add_inst(La(R8, format!("putf"))),
-                    "starttime" => asm.add_inst(La(R8, format!("starttime"))),
-                    "stoptime" => asm.add_inst(La(R8, format!("stoptime"))),
-                    _ => asm.add_inst(La(R8, format!("__zvezda_label_{function}"))),
+                    "putf" => asm.add_inst(Mov32Label(R8, format!("putf"))),
+                    "starttime" => asm.add_inst(Mov32Label(R8, format!("starttime"))),
+                    "stoptime" => asm.add_inst(Mov32Label(R8, format!("stoptime"))),
+                    _ => asm.add_inst(Mov32Label(R8, format!("__zvezda_label_{function}"))),
                 }
                 asm.add_inst(Blx(R8));
                 asm.add_inst(VPush(S0));
@@ -358,43 +358,43 @@ fn function(
             IRItem::CallInt { function, num_args: _ } => {
                 let id = symbol_table.get(function).unwrap().id.as_str();
                 match id {
-                    "getint" => asm.add_inst(La(R8, format!("getint"))),
-                    "getch" => asm.add_inst(La(R8, format!("getch"))),
-                    "getfloat" => asm.add_inst(La(R8, format!("getfloat"))),
+                    "getint" => asm.add_inst(Mov32Label(R8, format!("getint"))),
+                    "getch" => asm.add_inst(Mov32Label(R8, format!("getch"))),
+                    "getfloat" => asm.add_inst(Mov32Label(R8, format!("getfloat"))),
                     "getarray" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("getarray")));
+                        asm.add_inst(Mov32Label(R8, format!("getarray")));
                     }
                     "getfarray" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("getfarray")));
+                        asm.add_inst(Mov32Label(R8, format!("getfarray")));
                     }
                     "putint" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("putint")));
+                        asm.add_inst(Mov32Label(R8, format!("putint")));
                     }
                     "putch" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("putch")));
+                        asm.add_inst(Mov32Label(R8, format!("putch")));
                     }
                     "putfloat" => {
                         asm.add_inst(VPop(S0));
-                        asm.add_inst(La(R8, format!("putfloat")));
+                        asm.add_inst(Mov32Label(R8, format!("putfloat")));
                     }
                     "putarray" => {
                         asm.add_inst(Pop(R0));
                         asm.add_inst(Pop(R1));
-                        asm.add_inst(La(R8, format!("putarray")));
+                        asm.add_inst(Mov32Label(R8, format!("putarray")));
                     }
                     "putfarray" => {
                         asm.add_inst(Pop(R0));
                         asm.add_inst(Pop(R1));
-                        asm.add_inst(La(R8, format!("putfarray")));
+                        asm.add_inst(Mov32Label(R8, format!("putfarray")));
                     }
-                    "putf" => asm.add_inst(La(R8, format!("putf"))),
-                    "starttime" => asm.add_inst(La(R8, format!("starttime"))),
-                    "stoptime" => asm.add_inst(La(R8, format!("stoptime"))),
-                    _ => asm.add_inst(La(R8, format!("__zvezda_label_{function}"))),
+                    "putf" => asm.add_inst(Mov32Label(R8, format!("putf"))),
+                    "starttime" => asm.add_inst(Mov32Label(R8, format!("starttime"))),
+                    "stoptime" => asm.add_inst(Mov32Label(R8, format!("stoptime"))),
+                    _ => asm.add_inst(Mov32Label(R8, format!("__zvezda_label_{function}"))),
                 }
                 asm.add_inst(Blx(R8));
                 asm.add_inst(Push(R0));
@@ -402,77 +402,77 @@ fn function(
             IRItem::CallVoid { function, num_args: _ } => {
                 let id = symbol_table.get(function).unwrap().id.as_str();
                 match id {
-                    "getint" => asm.add_inst(La(R8, format!("getint"))),
-                    "getch" => asm.add_inst(La(R8, format!("getch"))),
-                    "getfloat" => asm.add_inst(La(R8, format!("getfloat"))),
+                    "getint" => asm.add_inst(Mov32Label(R8, format!("getint"))),
+                    "getch" => asm.add_inst(Mov32Label(R8, format!("getch"))),
+                    "getfloat" => asm.add_inst(Mov32Label(R8, format!("getfloat"))),
                     "getarray" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("getarray")));
+                        asm.add_inst(Mov32Label(R8, format!("getarray")));
                     }
                     "getfarray" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("getfarray")));
+                        asm.add_inst(Mov32Label(R8, format!("getfarray")));
                     }
                     "putint" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("putint")));
+                        asm.add_inst(Mov32Label(R8, format!("putint")));
                     }
                     "putch" => {
                         asm.add_inst(Pop(R0));
-                        asm.add_inst(La(R8, format!("putch")));
+                        asm.add_inst(Mov32Label(R8, format!("putch")));
                     }
                     "putfloat" => {
                         asm.add_inst(VPop(S0));
-                        asm.add_inst(La(R8, format!("putfloat")));
+                        asm.add_inst(Mov32Label(R8, format!("putfloat")));
                     }
                     "putarray" => {
                         asm.add_inst(Pop(R0));
                         asm.add_inst(Pop(R1));
-                        asm.add_inst(La(R8, format!("putarray")));
+                        asm.add_inst(Mov32Label(R8, format!("putarray")));
                     }
                     "putfarray" => {
                         asm.add_inst(Pop(R0));
                         asm.add_inst(Pop(R1));
-                        asm.add_inst(La(R8, format!("putfarray")));
+                        asm.add_inst(Mov32Label(R8, format!("putfarray")));
                     }
-                    "putf" => asm.add_inst(La(R8, format!("putf"))),
-                    "starttime" => asm.add_inst(La(R8, format!("starttime"))),
-                    "stoptime" => asm.add_inst(La(R8, format!("stoptime"))),
-                    _ => asm.add_inst(La(R8, format!("__zvezda_label_{function}"))),
+                    "putf" => asm.add_inst(Mov32Label(R8, format!("putf"))),
+                    "starttime" => asm.add_inst(Mov32Label(R8, format!("starttime"))),
+                    "stoptime" => asm.add_inst(Mov32Label(R8, format!("stoptime"))),
+                    _ => asm.add_inst(Mov32Label(R8, format!("__zvezda_label_{function}"))),
                 }
                 asm.add_inst(Blx(R8));
             }
             IRItem::Load => {
                 asm.add_inst(Pop(R0));
-                asm.add_inst(Lw(R0, R0));
+                asm.add_inst(Ldr(R0, R0));
                 asm.add_inst(Push(R0));
             }
             IRItem::Store => {
                 asm.add_inst(Pop(R0));
                 asm.add_inst(Pop(R1));
-                asm.add_inst(Sw(R0, R1));
+                asm.add_inst(Sdr(R0, R1));
             }
             IRItem::LoadAddr { var } => {
                 if c.contains_key(var) {
                     let offset = c.get(var).unwrap();
-                    asm.add_inst(Ldr(R0, *offset));
+                    asm.add_inst(Mov32(R0, *offset));
                     asm.add_inst(Add(R0, R0, R11));
                     asm.add_inst(Push(R0));
                 } else {
-                    asm.add_inst(La(R0, format!("__zvezda_label_{var}")));
+                    asm.add_inst(Mov32Label(R0, format!("__zvezda_label_{var}")));
                     asm.add_inst(Push(R0));
                 }
             }
             IRItem::RetFloat => {
                 asm.add_inst(VPop(S0));
-                asm.add_inst(Mv(R13, R11));
+                asm.add_inst(Mov(R13, R11));
                 asm.add_inst(Pop(R14));
                 asm.add_inst(Pop(R11));
                 asm.add_inst(Bx(R14));
             }
             IRItem::RetInt => {
                 asm.add_inst(Pop(R0));
-                asm.add_inst(Mv(R13, R11));
+                asm.add_inst(Mov(R13, R11));
                 asm.add_inst(Pop(R14));
                 asm.add_inst(Pop(R11));
                 asm.add_inst(Bx(R14));

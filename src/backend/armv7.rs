@@ -33,11 +33,11 @@ pub enum Inst {
     Cmp(Reg, Reg),
     VCmpF32(Reg, Reg),
 
-    Lw(Reg, Reg),
-    Sw(Reg, Reg),
-    Ldr(Reg, i32),
-    La(Reg, String),
-    Mv(Reg, Reg),
+    Ldr(Reg, Reg),
+    Sdr(Reg, Reg),
+    Mov32(Reg, i32),
+    Mov32Label(Reg, String),
+    Mov(Reg, Reg),
 
     Load1Eq(Reg),
     Load1Ne(Reg),
@@ -187,8 +187,8 @@ impl ARMTrait for ARM {
 impl Display for Inst {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
-            Self::Lw(rd, rs) => write!(f, "ldr {rd}, [{rs}]"),
-            Self::Sw(rs_1, rs_2) => write!(f, "str {rs_1}, [{rs_2}]"),
+            Self::Ldr(rd, rs) => write!(f, "ldr {rd}, [{rs}]"),
+            Self::Sdr(rs_1, rs_2) => write!(f, "str {rs_1}, [{rs_2}]"),
 
             Self::Add(rd, rs_1, rs_2) => write!(f, "add {rd}, {rs_1}, {rs_2}"),
             Self::Sub(rd, rs_1, rs_2) => write!(f, "sub {rd}, {rs_1}, {rs_2}"),
@@ -203,9 +203,9 @@ impl Display for Inst {
 
             Self::Blx(reg) => write!(f, "blx {reg}"),
             Self::Bx(reg) => write!(f, "bx {reg}"),
-            Self::Ldr(reg, imm) => write!(f, "mov32 {reg}, {}", *imm as u32),
-            Self::La(reg, label) => write!(f, "mov32 {reg}, {label}"),
-            Self::Mv(rd, rs) => write!(f, "mov {rd}, {rs}"),
+            Self::Mov32(reg, imm) => write!(f, "mov32 {reg}, {}", *imm as u32),
+            Self::Mov32Label(reg, label) => write!(f, "mov32 {reg}, {label}"),
+            Self::Mov(rd, rs) => write!(f, "mov {rd}, {rs}"),
 
             Self::VAddF32(rd, rs_1, rs_2) => write!(f, "vadd.f32 {rd}, {rs_1}, {rs_2}"),
             Self::VSubF32(rd, rs_1, rs_2) => write!(f, "vsub.f32 {rd}, {rs_1}, {rs_2}"),
