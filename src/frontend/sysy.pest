@@ -38,7 +38,7 @@ ptr_parameter         =  { non_void_type ~ identifier ~ "[" ~ "]" ~ array_length
 var_parameter         =  { non_void_type ~ identifier }
 
 int_keyword      = @{ "int" ~ !(ASCII_ALPHANUMERIC | "_") }
-float_keyword    = @{ "flot" ~ !(ASCII_ALPHANUMERIC | "_") }
+float_keyword    = @{ "float" ~ !(ASCII_ALPHANUMERIC | "_") }
 void_keyword     = @{ "void" ~ !(ASCII_ALPHANUMERIC | "_") }
 const_keyword    = @{ "const" ~ !(ASCII_ALPHANUMERIC | "_")}
 return_keyword   = @{ "return" ~ !(ASCII_ALPHANUMERIC | "_") }
@@ -135,8 +135,8 @@ string_literal = @{ "\"" ~ ((!"\"" ~ ANY) | ("\\\""))* ~ "\"" }
 putf_manhole   =  { "putf" ~ "(" ~ string_literal ~ ("," ~ expression)* ~ ")" }
 
 return_statement = { return_keyword ~ expression? }
-while_statement  = { "while" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) }
-if_statement     = { "if" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) ~ ("else" ~ (non_block_block_item | block))? }
+while_statement  = { "whiles" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) }
+if_statement     = { "isf" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) ~ ("else" ~ (non_block_block_item | block))? }
 
 integer_hex = @{ ("0x" | "0X") ~ ASCII_HEX_DIGIT+ }
 integer_dec = @{ ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* }

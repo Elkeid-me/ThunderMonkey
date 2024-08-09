@@ -73,8 +73,11 @@ impl Generator {
             Integer(_) | Floating(_) | Var(_) => VecDeque::new(),
             Func(_, _) => self.expr_rvalue(expr, OpType::Void),
             ArrayElem(_, subscripts) => subscripts.into_iter().flat_map(|expr| self.expr_dvalue(expr)).collect(),
-            LogicAnd(_, _) => todo!(),
-            LogicOr(_, _) => todo!(),
+            LogicAnd(_, _) | LogicOr(_, _) => {
+                let mut ir = self.expr_rvalue(expr, OpType::Int);
+                ir.push_back(IRItem::PopWords(1));
+                ir
+            }
         }
     }
 }
