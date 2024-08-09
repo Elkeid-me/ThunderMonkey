@@ -46,12 +46,12 @@ pub enum Inst {
     Load1Le(Reg),
     Load1Lt(Reg),
 
-    VLoad1Eq(Reg),
-    VLoad1Ne(Reg),
-    VLoad1Ge(Reg),
-    VLoad1Gt(Reg),
-    VLoad1Le(Reg),
-    VLoad1Lt(Reg),
+    VLdr1Eq(Reg),
+    VLdr1Ne(Reg),
+    VLdr1Ge(Reg),
+    VLdr1Gt(Reg),
+    VLdr1Le(Reg),
+    VLdr1Lt(Reg),
 
     Add(Reg, Reg, Reg),
     Sub(Reg, Reg, Reg),
@@ -230,12 +230,12 @@ impl Display for Inst {
 
             Self::VEor(rd, rs_1, rs_2) => write!(f, "veor.f32 {rd}, {rs_1}, {rs_2}"),
 
-            Self::VLoad1Eq(reg) => write!(f, "vldreq.f32 {reg}, #1"),
-            Self::VLoad1Ne(reg) => write!(f, "vldrne.f32 {reg}, #1"),
-            Self::VLoad1Ge(reg) => write!(f, "vldrge.f32 {reg}, #1"),
-            Self::VLoad1Gt(reg) => write!(f, "vldrgt.f32 {reg}, #1"),
-            Self::VLoad1Le(reg) => write!(f, "vldrle.f32 {reg}, #1"),
-            Self::VLoad1Lt(reg) => write!(f, "vldrlt.f32 {reg}, #1"),
+            Self::VLdr1Eq(reg) => write!(f, "vldreq.f32 {reg}, #1"),
+            Self::VLdr1Ne(reg) => write!(f, "vldrne.f32 {reg}, #1"),
+            Self::VLdr1Ge(reg) => write!(f, "vldrge.f32 {reg}, #1"),
+            Self::VLdr1Gt(reg) => write!(f, "vldrgt.f32 {reg}, #1"),
+            Self::VLdr1Le(reg) => write!(f, "vldrle.f32 {reg}, #1"),
+            Self::VLdr1Lt(reg) => write!(f, "vldrlt.f32 {reg}, #1"),
         }
     }
 }

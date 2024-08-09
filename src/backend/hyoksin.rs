@@ -224,7 +224,7 @@ fn function(
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLoad1Eq(S2));
+                asm.add_inst(VLdr1Eq(S2));
                 asm.add_inst(VPush(S2));
             }
             IRItem::NeFloat => {
@@ -232,7 +232,7 @@ fn function(
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLoad1Ne(S2));
+                asm.add_inst(VLdr1Ne(S2));
                 asm.add_inst(VPush(S2));
             }
             IRItem::LeFloat => {
@@ -240,7 +240,7 @@ fn function(
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLoad1Le(S2));
+                asm.add_inst(VLdr1Le(S2));
                 asm.add_inst(VPush(S2));
             }
             IRItem::LtFloat => {
@@ -248,7 +248,7 @@ fn function(
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLoad1Lt(S2));
+                asm.add_inst(VLdr1Lt(S2));
                 asm.add_inst(VPush(S2));
             }
             IRItem::GeFloat => {
@@ -256,7 +256,7 @@ fn function(
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLoad1Ge(S2));
+                asm.add_inst(VLdr1Ge(S2));
                 asm.add_inst(VPush(S2));
             }
             IRItem::GtFloat => {
@@ -264,7 +264,7 @@ fn function(
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLoad1Gt(S2));
+                asm.add_inst(VLdr1Gt(S2));
                 asm.add_inst(VPush(S2));
             }
 
