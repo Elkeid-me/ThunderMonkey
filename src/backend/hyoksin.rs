@@ -453,13 +453,13 @@ fn function(
                 asm.add_inst(Sw(R0, R1));
             }
             IRItem::LoadAddr { var } => {
-                if symbol_table.get(&var).unwrap().is_global {
-                    asm.add_inst(La(R0, format!("__zvezda_label_{var}")));
-                    asm.add_inst(Push(R0));
-                } else {
+                if c.contains_key(var) {
                     let offset = c.get(var).unwrap();
                     asm.add_inst(Ldr(R0, *offset));
                     asm.add_inst(Add(R0, R0, R11));
+                    asm.add_inst(Push(R0));
+                } else {
+                    asm.add_inst(La(R0, format!("__zvezda_label_{var}")));
                     asm.add_inst(Push(R0));
                 }
             }

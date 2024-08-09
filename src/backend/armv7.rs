@@ -203,8 +203,8 @@ impl Display for Inst {
 
             Self::Blx(reg) => write!(f, "blx {reg}"),
             Self::Bx(reg) => write!(f, "bx {reg}"),
-            Self::Ldr(reg, imm) => write!(f, "mov32 {reg}, #{imm}"),
-            Self::La(reg, label) => write!(f, "mov32 {reg}, {label}"),
+            Self::Ldr(reg, imm) => write!(f, "ldr {reg}, ={imm}"),
+            Self::La(reg, label) => write!(f, "ldr {reg}, {label}"),
             Self::Mv(rd, rs) => write!(f, "mov {rd}, {rs}"),
 
             Self::VAddF32(rd, rs_1, rs_2) => write!(f, "vadd.f32 {rd}, {rs_1}, {rs_2}"),
@@ -221,21 +221,21 @@ impl Display for Inst {
             Self::Cmp(rd, rs) => write!(f, "cmp {rd}, {rs}"),
             Self::VCmpF32(rd, rs) => write!(f, "vcmp.f32 {rd}, {rs}"),
 
-            Self::Load1Eq(reg) => write!(f, "moveq {reg}, #1"),
-            Self::Load1Ne(reg) => write!(f, "movne {reg}, #1"),
-            Self::Load1Ge(reg) => write!(f, "movge {reg}, #1"),
-            Self::Load1Gt(reg) => write!(f, "movgt {reg}, #1"),
-            Self::Load1Le(reg) => write!(f, "movle {reg}, #1"),
-            Self::Load1Lt(reg) => write!(f, "movlt {reg}, #1"),
+            Self::Load1Eq(reg) => write!(f, "moveq {reg}, =1"),
+            Self::Load1Ne(reg) => write!(f, "movne {reg}, =1"),
+            Self::Load1Ge(reg) => write!(f, "movge {reg}, =1"),
+            Self::Load1Gt(reg) => write!(f, "movgt {reg}, =1"),
+            Self::Load1Le(reg) => write!(f, "movle {reg}, =1"),
+            Self::Load1Lt(reg) => write!(f, "movlt {reg}, =1"),
 
             Self::VEor(rd, rs_1, rs_2) => write!(f, "veor.f32 {rd}, {rs_1}, {rs_2}"),
 
-            Self::VLoad1Eq(reg) => write!(f, "vldreq.f32 {reg}, #1"),
-            Self::VLoad1Ne(reg) => write!(f, "vldrne.f32 {reg}, #1"),
-            Self::VLoad1Ge(reg) => write!(f, "vldrge.f32 {reg}, #1"),
-            Self::VLoad1Gt(reg) => write!(f, "vldrgt.f32 {reg}, #1"),
-            Self::VLoad1Le(reg) => write!(f, "vldrle.f32 {reg}, #1"),
-            Self::VLoad1Lt(reg) => write!(f, "vldrlt.f32 {reg}, #1"),
+            Self::VLoad1Eq(reg) => write!(f, "vldreq.f32 {reg}, =1"),
+            Self::VLoad1Ne(reg) => write!(f, "vldrne.f32 {reg}, =1"),
+            Self::VLoad1Ge(reg) => write!(f, "vldrge.f32 {reg}, =1"),
+            Self::VLoad1Gt(reg) => write!(f, "vldrgt.f32 {reg}, =1"),
+            Self::VLoad1Le(reg) => write!(f, "vldrle.f32 {reg}, =1"),
+            Self::VLoad1Lt(reg) => write!(f, "vldrlt.f32 {reg}, =1"),
         }
     }
 }
