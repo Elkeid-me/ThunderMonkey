@@ -246,7 +246,7 @@ impl Display for Directive {
             Self::Text => write!(f, ".text"),
             Self::Global(label) => write!(f, ".global {label}"),
             Self::Data => write!(f, ".data"),
-            Self::Zero(len) => write!(f, ".zero {len}"),
+            Self::Zero(len) => write!(f, ".zero {}", len * 4),
             Self::Word(nums) => {
                 let data: Vec<_> = nums.iter().map(u32::to_string).collect();
                 write!(f, ".word {}", data.as_slice().join(", "))
