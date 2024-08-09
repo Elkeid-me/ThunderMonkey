@@ -414,7 +414,7 @@ fn function(
                 asm.add_inst(Push(vec![R0]));
             }
             IRItem::Store => {
-                asm.add_inst(Pop(vec![R1, R0]));
+                asm.add_inst(Pop(vec![R0, R1]));
                 asm.add_inst(Sw(R0, R1));
             }
             IRItem::LoadAddr { var } => {
