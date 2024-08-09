@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{Handler, HashMap};
+use crate::{frontend::ast::Definition, Handler, HashMap};
 use std::collections::VecDeque;
 
 pub enum GlobalItem {
@@ -24,7 +24,7 @@ pub enum GlobalItem {
 }
 
 pub struct IR {
-    pub symbols: Vec<Handler>,
+    pub symbol_table: HashMap<Handler, Definition>,
     pub ir: HashMap<Handler, GlobalItem>,
 }
 
