@@ -19,6 +19,7 @@ use super::super::error::{CompilerError, ErrorNumber::*};
 use crate::frontend::ast::{ExprCategory::*, ExprInner::*, *};
 use crate::frontend::parser::{ASTBuilder, Rule};
 use crate::frontend::ty::Type::{self, *};
+use crate::Handler;
 use libc::strtof;
 use pest::iterators::Pair;
 use core::ptr::null_mut;

@@ -20,12 +20,11 @@ mod expr;
 use super::ast::{ExprCategory::*, ExprInner::*, *};
 use super::error::{CompilerError, ErrorNumber::*};
 use super::ty::Type::{self, *};
-use crate::risk;
+use crate::{risk, Handler, HashMap, HashSet};
 use pest::pratt_parser::Assoc::{Left, Right};
 use pest::pratt_parser::{Op, PrattParser};
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
-use std::collections::{HashMap, HashSet};
 
 #[derive(Parser)]
 #[grammar = "frontend/sysy.pest"]
@@ -188,7 +187,13 @@ impl ASTBuilder {
                 | Op::prefix(Rule::pre_inc)
                 | Op::prefix(Rule::pre_dec))
             .op(Op::postfix(Rule::post_inc) | Op::postfix(Rule::post_dec));
-        Self { expr_parser, table: vec![HashMap::new()], symbol_table: HashMap::new(), counter: Counter { value: 0 }, depth: 0 }
+        Self {
+            expr_parser,
+            table: vec![HashMap::default()],
+            symbol_table: HashMap::default(),
+            counter: Counter { value: 0 },
+            depth: 0,
+        }
     }
 
     fn is_global_now(&self) -> bool {
@@ -229,7 +234,7 @@ impl ASTBuilder {
     }
     fn enter_scope(&mut self) {
         self.depth += 1;
-        self.table.push(HashMap::new());
+        self.table.push(HashMap::default());
     }
     fn exit_scope(&mut self) {
         self.table.pop();
@@ -383,7 +388,10 @@ impl ASTBuilder {
                                 let line_col = expr.line_col();
                                 let expr = self.parse_expr(expr)?;
                                 if !matches!(&expr.ty, Int | Float) {
-                                    return Err(CompilerError { error_number: IncompatibleType(expr.ty, vec![Int, Float]), line_col });
+                                    return Err(CompilerError {
+                                        error_number: IncompatibleType(expr.ty, vec![Int, Float]),
+                                        line_col,
+                                    });
                                 }
                                 self.insert_definition(id, ty.clone(), Some(Init::Expr(expr)))
                             }
@@ -587,7 +595,7 @@ impl ASTBuilder {
 
     fn parse(mut self, code: &str) -> Result<TranslationUnit, CompilerError> {
         let mut ast = Vec::new();
-        let mut set = HashSet::new();
+        let mut set = HashSet::default();
         let sysy_lib = [
             (Function(Box::new(Int), Vec::new()), "getint".to_string()),
             (Function(Box::new(Int), Vec::new()), "getch".to_string()),

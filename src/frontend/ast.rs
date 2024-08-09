@@ -16,11 +16,8 @@
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::ty::Type;
-use std::collections::HashMap;
+use crate::{Handler, HashMap};
 
-pub type Handler = u32;
-
-#[derive(Debug)]
 pub struct Definition {
     pub init: Option<Init>,
     pub ty: Type,
@@ -29,13 +26,11 @@ pub struct Definition {
     pub is_arg: bool,
 }
 
-#[derive(Debug)]
 pub struct TranslationUnit {
     pub ast: Vec<Handler>,
     pub symbol_table: HashMap<Handler, Definition>,
 }
 
-#[derive(Debug)]
 pub enum Init {
     Function { block: Block, is_entry: bool, arg_handlers: Vec<Handler> },
     Expr(Expr),
@@ -45,7 +40,7 @@ pub enum Init {
     ConstList(ConstInitList),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum InitListItem {
     InitList(Box<InitList>),
     Expr(Expr),
@@ -53,7 +48,7 @@ pub enum InitListItem {
 
 pub type InitList = Vec<InitListItem>;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum ConstInitListItem {
     ConstInitList(Box<ConstInitList>),
     Int(i32),
@@ -62,7 +57,6 @@ pub enum ConstInitListItem {
 
 pub type ConstInitList = Vec<ConstInitListItem>;
 
-#[derive(Debug)]
 pub enum Statement {
     Expr(Expr),
     If(Expr, Box<Block>, Box<Block>),
@@ -74,14 +68,13 @@ pub enum Statement {
 
 pub type Block = Vec<BlockItem>;
 
-#[derive(Debug)]
 pub enum BlockItem {
     Def(Vec<Handler>),
     Block(Block),
     Statement(Statement),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum ExprInner {
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
@@ -133,7 +126,7 @@ pub enum ExprInner {
     ArrayElem(Handler, Vec<Expr>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Expr {
     pub inner: ExprInner,
     pub ty: Type,
@@ -141,12 +134,18 @@ pub struct Expr {
     pub is_const: bool,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub enum ExprCategory {
     LValue,
     RValue,
 }
 
-fn print_def(translation_unit: TranslationUnit, handler: Handler) {
-
+impl Expr {
+    pub fn to_bits(&self) -> u32 {
+        match self.inner {
+            ExprInner::Integer(i) => i as u32,
+            ExprInner::Floating(f) => f.to_bits(),
+            _ => panic!(),
+        }
+    }
 }

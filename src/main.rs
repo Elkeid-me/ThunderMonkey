@@ -17,12 +17,17 @@
 
 mod arg_parse;
 mod frontend;
+mod backend;
 mod preprocessor;
 
 use arg_parse::{Mode, ParsedArgs};
 use preprocessor::preprocess;
 use std::fs::{read_to_string, File};
 use std::io::Write;
+
+type Handler = u32;
+type HashMap<K, V> = rustc_hash::FxHashMap<K, V>;
+type HashSet<V> = rustc_hash::FxHashSet<V>;
 
 /// 每个人承担自己的风险！
 #[macro_export]
@@ -39,22 +44,25 @@ fn compile() -> Result<(), Box<dyn std::error::Error>> {
     let ParsedArgs { mode, input, output } = arg_parse::parse(std::env::args())?;
     let code = preprocess(read_to_string(input)?);
     // let code = read_to_string(input)?;
-    let ast = frontend::parser::parse(&code)?;
+    // let ast = frontend::parser::parse(&code)?;
     let mut f = File::create(output)?;
     match mode {
         Mode::Debug => {
             println!("使用调试模式");
-            write!(f, "{ast:#?}")?;
+            // write!(f, "{ast:#?}")?;
         }
         Mode::Optimization => {
             println!("使用优化模式");
-            write!(f, "{ast:#?}")?;
+            // write!(f, "{ast:#?}")?;
         }
     }
     Ok(())
 }
 
 fn main() {
+    if cfg!(target_os = "linux") {
+
+    }
     if let Err(s) = compile() {
         println!("{s}");
         std::process::exit(1);

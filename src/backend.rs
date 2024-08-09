@@ -15,16 +15,4 @@
 // You should have received a copy of the GNU General Public License
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
-pub mod ast;
-mod error;
-mod ir_generator;
-pub mod parser;
-mod ty;
-
-use crate::backend::chollima::IR;
-
-
-pub fn generator_ir(src: &str) -> Result<IR, Box<dyn std::error::Error>> {
-    let translation_unit = parser::parse(src)?;
-    Ok(ir_generator::generator_ir(translation_unit))
-}
+pub mod chollima;

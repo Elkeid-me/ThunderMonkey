@@ -17,6 +17,7 @@
 
 /// # sysy.pest
 ///
+/// 用于不包含注释的 sysy 的解析器。注释由单独的预处理器负责。
 /// `translation_unit`（翻译单元）为语法的根。
 
 WHITESPACE = _{ " " | "\t" | NEWLINE }
