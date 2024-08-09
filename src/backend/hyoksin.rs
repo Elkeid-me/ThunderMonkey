@@ -117,7 +117,7 @@ fn function(
             IRItem::Mod => {
                 asm.add_inst(Pop(vec![R1, R0]));
                 asm.add_inst(La(R2, "__aeabi_idivmod".to_string()));
-                asm.add_inst(Bx(R2));
+                asm.add_inst(Blx(R2));
                 asm.add_inst(Push(vec![R1]));
             }
 
