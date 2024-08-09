@@ -139,13 +139,3 @@ pub enum ExprCategory {
     LValue,
     RValue,
 }
-
-impl Expr {
-    pub fn to_bits(&self) -> u32 {
-        match self.inner {
-            ExprInner::Integer(i) => i as u32,
-            ExprInner::Floating(f) => f.to_bits(),
-            _ => panic!(),
-        }
-    }
-}

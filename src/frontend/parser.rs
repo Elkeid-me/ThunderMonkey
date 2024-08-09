@@ -17,6 +17,8 @@
 
 mod expr;
 
+use std::iter::repeat;
+
 use super::ast::{ExprCategory::*, ExprInner::*, *};
 use super::error::{CompilerError, ErrorNumber::*};
 use super::ty::Type::{self, *};
@@ -58,10 +60,10 @@ trait InitListTrait {
     fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self>
     where
         Self: Sized;
-    // fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self>
-    // where
-    //     Self: Sized;
-    // fn generate_empty_list(len: &[usize]) -> Self;
+    fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self>
+    where
+        Self: Sized;
+    fn generate_empty_list(len: &[usize]) -> Self;
 }
 
 impl InitListTrait for ConstInitListItem {
@@ -84,24 +86,24 @@ impl InitListTrait for ConstInitListItem {
     fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self> {
         risk!(v.last_mut().unwrap(), Self::ConstInitList(l) => l.as_mut())
     }
-    // fn generate_empty_list(len: &[usize]) -> Self {
-    //     match len.len() {
-    //         0 => Self::Num(0),
-    //         _ => Self::new_list(repeat(Self::generate_empty_list(&len[1..])).take(len[0]).collect()),
-    //     }
-    // }
-    // fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self> {
-    //     let empty_list = Self::generate_empty_list(&len[1..]);
-    //     let empty_list_n = len[0] - init_list.len();
-    //     init_list
-    //         .into_iter()
-    //         .map(|item| match item {
-    //             Self::ConstInitList(list) => Self::ConstInitList(Box::new(Self::add_empty_list(&len[1..], *list))),
-    //             i => i,
-    //         })
-    //         .chain(repeat(empty_list).take(empty_list_n))
-    //         .collect()
-    // }
+    fn generate_empty_list(len: &[usize]) -> Self {
+        match len.len() {
+            0 => Self::Int(0),
+            _ => Self::new_list(repeat(Self::generate_empty_list(&len[1..])).take(len[0]).collect()),
+        }
+    }
+    fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self> {
+        let empty_list = Self::generate_empty_list(&len[1..]);
+        let empty_list_n = len[0] - init_list.len();
+        init_list
+            .into_iter()
+            .map(|item| match item {
+                Self::ConstInitList(list) => Self::ConstInitList(Box::new(Self::add_empty_list(&len[1..], *list))),
+                i => i,
+            })
+            .chain(repeat(empty_list).take(empty_list_n))
+            .collect()
+    }
 }
 
 impl InitListTrait for InitListItem {
@@ -133,24 +135,24 @@ impl InitListTrait for InitListItem {
     fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self> {
         risk!(v.last_mut().unwrap(), Self::InitList(l) => l.as_mut())
     }
-    // fn generate_empty_list(len: &[usize]) -> Self {
-    //     match len.len() {
-    //         0 => Self::Expr(Num(0)),
-    //         _ => Self::new_list(repeat(Self::generate_empty_list(&len[1..])).take(len[0]).collect()),
-    //     }
-    // }
-    // fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self> {
-    //     let empty_list = Self::generate_empty_list(&len[1..]);
-    //     let empty_list_n = len[0] - init_list.len();
-    //     init_list
-    //         .into_iter()
-    //         .map(|item| match item {
-    //             Self::InitList(list) => Self::InitList(Box::new(Self::add_empty_list(&len[1..], *list))),
-    //             expr => expr,
-    //         })
-    //         .chain(repeat(empty_list).take(empty_list_n))
-    //         .collect()
-    // }
+    fn generate_empty_list(len: &[usize]) -> Self {
+        match len.len() {
+            0 => Self::Expr(Expr { inner: Integer(0), ty: Int, category: RValue, is_const: true }),
+            _ => Self::new_list(repeat(Self::generate_empty_list(&len[1..])).take(len[0]).collect()),
+        }
+    }
+    fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self> {
+        let empty_list = Self::generate_empty_list(&len[1..]);
+        let empty_list_n = len[0] - init_list.len();
+        init_list
+            .into_iter()
+            .map(|item| match item {
+                Self::InitList(list) => Self::InitList(Box::new(Self::add_empty_list(&len[1..], *list))),
+                expr => expr,
+            })
+            .chain(repeat(empty_list).take(empty_list_n))
+            .collect()
+    }
 }
 type Signature = (String, Type, Vec<Type>, Vec<String>);
 impl ASTBuilder {
@@ -330,9 +332,9 @@ impl ASTBuilder {
                 Some(*l)
             })
             .collect();
-        let (list, _) = self.parse_init_list_impl::<T>(init_list, &len_prod, ty)?;
-        Ok(list)
-        // Ok(T::add_empty_list(lengths, self.parse_init_list_impl::<T>(init_list, &len_prod)?.0))
+        // let (list, _) = self.parse_init_list_impl::<T>(init_list, &len_prod, ty)?;
+        // Ok(list)
+        Ok(T::add_empty_list(lengths, self.parse_init_list_impl::<T>(init_list, &len_prod, ty)?.0))
     }
 
     fn parse_definition(&mut self, pair: Pair<Rule>) -> Result<Vec<Handler>, CompilerError> {

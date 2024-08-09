@@ -23,7 +23,7 @@ mod statement;
 
 use super::{ast::*, ty::Type};
 use crate::{backend::chollima::*, Handler, HashMap};
-use std::collections::VecDeque;
+use std::{cell::RefCell, collections::VecDeque};
 
 struct Counter {
     value: i32,
@@ -37,24 +37,36 @@ impl Counter {
 }
 
 struct Generator {
-    counter: Counter,
+    counter: RefCell<Counter>,
     ast: Vec<Handler>,
     symbol_table: HashMap<Handler, Definition>,
-    global_items: HashMap<Handler, Vec<u32>>,
+    context: HashMap<Handler, usize>,
+    global_items: HashMap<Handler, GlobalItem>,
 }
 
 impl Generator {
     fn new(translation_unit: TranslationUnit) -> Self {
         let TranslationUnit { ast, symbol_table } = translation_unit;
-        Self { counter: Counter { value: -1 }, ast, symbol_table, global_items: HashMap::default() }
+        Self {
+            counter: RefCell::new(Counter { value: -1 }),
+            ast,
+            symbol_table,
+            context: HashMap::default(),
+            global_items: HashMap::default(),
+        }
     }
 
     fn generator(mut self) -> IR {
-        let defs = self.ast.iter().map(|&handler| (handler, self.global_def(handler))).collect();
-        IR { ast: self.ast, defs, symbol_table: self.symbol_table }
+        unsafe {
+            let ast = (&self.ast) as *const Vec<u32>;
+            for &handler in (&*ast).iter() {
+                self.global_def(handler);
+            }
+        }
+        IR { symbols: self.global_items.keys().copied().collect(), ir: self.global_items }
     }
 
-    pub(self) fn array_elem_helper(&self, array: Handler, subscripts: Vec<Expr>) -> VecDeque<IRItem> {
+    pub(self) fn array_elem_helper(&self, array: Handler, subscripts: &[Expr]) -> VecDeque<IRItem> {
         let symbol_ty = &self.symbol_table.get(&array).unwrap().ty;
         let (mut ir, len_prod) = match symbol_ty {
             Type::Pointer(_, lens) => {

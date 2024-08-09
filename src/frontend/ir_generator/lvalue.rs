@@ -15,24 +15,28 @@
 // You should have received a copy of the GNU General Public License
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::{Definition, Generator};
+use super::Generator;
+use crate::backend::chollima::*;
 use crate::frontend::{ast::Expr, ast::ExprInner::*, ty::Type};
-use crate::Handler;
-use crate::{backend::chollima::*, risk};
 use std::collections::VecDeque;
 
 impl Generator {
-    fn expr_lvalue(&self, expr: Expr) -> VecDeque<IRItem> {
-        let Expr { inner, ty, category: _, is_const: _ } = expr;
+    pub fn expr_lvalue(&self, expr: &Expr) -> VecDeque<IRItem> {
+        let Expr { inner, ty: _, category: _, is_const: _ } = expr;
         match inner {
             PostInc(_) => todo!(),
             PostDec(_) => todo!(),
             PreInc(_) => todo!(),
             PreDec(_) => todo!(),
             Assignment(l, r) => {
-                let mut ir = self.expr_lvalue(*l);
+                let mut ir = self.expr_lvalue(l);
+                let ty = match l.ty {
+                    Type::Int => OpType::Int,
+                    Type::Float => OpType::Float,
+                    _ => unreachable!(),
+                };
                 ir.push_back(IRItem::Double);
-                ir.extend(self.expr_rvalue(*r, todo!()));
+                ir.extend(self.expr_rvalue(r, ty));
                 ir.push_back(IRItem::Store);
                 ir
             }
@@ -46,8 +50,8 @@ impl Generator {
             XorAssign(_, _) => todo!(),
             ShLAssign(_, _) => todo!(),
             SaRAssign(_, _) => todo!(),
-            Var(handler) => VecDeque::from([IRItem::LoadAddr { var: handler }]),
-            ArrayElem(handler, subscripts) => self.array_elem_helper(handler, subscripts),
+            Var(handler) => VecDeque::from([IRItem::LoadAddr { var: *handler }]),
+            ArrayElem(handler, subscripts) => self.array_elem_helper(*handler, subscripts),
             _ => unreachable!(),
         }
     }

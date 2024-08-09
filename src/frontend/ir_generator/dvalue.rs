@@ -16,13 +16,13 @@
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::Generator;
-use crate::backend::chollima::{OpType, IRItem};
+use crate::backend::chollima::{IRItem, OpType};
 use crate::frontend::{ast::Expr, ast::ExprInner::*, ty::Type};
 use std::collections::VecDeque;
 
 impl Generator {
-    pub fn expr_dvalue(&self, expr: Expr) -> VecDeque<IRItem> {
-        let Expr { inner, ty, category, is_const } = expr;
+    pub fn expr_dvalue(&self, expr: &Expr) -> VecDeque<IRItem> {
+        let Expr { inner, ty: _, category: _, is_const: _ } = expr;
         match inner {
             Mul(l, r)
             | Div(l, r)
@@ -40,28 +40,38 @@ impl Generator {
             | Geq(l, r)
             | Les(l, r)
             | Leq(l, r) => {
-                let mut l_ir = self.expr_dvalue(*l);
-                l_ir.extend(self.expr_dvalue(*r));
+                let mut l_ir = self.expr_dvalue(l);
+                l_ir.extend(self.expr_dvalue(r));
                 l_ir
             }
-            LogicNot(expr) | Nega(expr) | Not(expr) => self.expr_dvalue(*expr),
+            LogicNot(expr) | Nega(expr) | Not(expr) => self.expr_dvalue(expr),
             PostInc(_) => todo!(),
             PostDec(_) => todo!(),
             PreInc(_) => todo!(),
             PreDec(_) => todo!(),
-            Assignment(l, r) => todo!(),
-            AddAssign(l, r) => todo!(),
-            SubAssign(l, r) => todo!(),
-            MulAssign(l, r) => todo!(),
-            DivAssign(l, r) => todo!(),
-            ModAssign(l, r) => todo!(),
-            AndAssign(l, r) => todo!(),
-            OrAssign(l, r) => todo!(),
-            XorAssign(l, r) => todo!(),
-            ShLAssign(l, r) => todo!(),
-            SaRAssign(l, r) => todo!(),
+            Assignment(l, r) => {
+                let mut ir = self.expr_lvalue(l);
+                let ty = match l.ty {
+                    Type::Int => OpType::Int,
+                    Type::Float => OpType::Float,
+                    _ => unreachable!(),
+                };
+                ir.extend(self.expr_rvalue(r, ty));
+                ir.push_back(IRItem::Store);
+                ir
+            }
+            AddAssign(_, _) => todo!(),
+            SubAssign(_, _) => todo!(),
+            MulAssign(_, _) => todo!(),
+            DivAssign(_, _) => todo!(),
+            ModAssign(_, _) => todo!(),
+            AndAssign(_, _) => todo!(),
+            OrAssign(_, _) => todo!(),
+            XorAssign(_, _) => todo!(),
+            ShLAssign(_, _) => todo!(),
+            SaRAssign(_, _) => todo!(),
             Integer(_) | Floating(_) | Var(_) => VecDeque::new(),
-            Func(_, _) => self.expr_rvalue(Expr { inner, ty, category, is_const }, OpType::Void),
+            Func(_, _) => self.expr_rvalue(expr, OpType::Void),
             ArrayElem(_, subscripts) => subscripts.into_iter().flat_map(|expr| self.expr_dvalue(expr)).collect(),
             LogicAnd(_, _) => todo!(),
             LogicOr(_, _) => todo!(),

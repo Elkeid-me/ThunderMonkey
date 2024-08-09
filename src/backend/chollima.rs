@@ -17,12 +17,15 @@
 
 use crate::{Handler, HashMap};
 use std::collections::VecDeque;
-use crate::frontend::ast::Definition;
+
+pub enum GlobalItem {
+    Variable { words: usize, init: Option<Vec<u32>> },
+    Function { code: VecDeque<IRItem>, context: HashMap<Handler, usize>, arg_handlers: Vec<Handler> },
+}
 
 pub struct IR {
-    pub ast: Vec<Handler>,
-    pub defs: HashMap<Handler, VecDeque<IRItem>>,
-    pub symbol_table: HashMap<Handler, Definition>,
+    pub symbols: Vec<Handler>,
+    pub ir: HashMap<Handler, GlobalItem>,
 }
 
 #[derive(Clone, Copy)]
@@ -115,11 +118,6 @@ pub enum IRItem {
     Label {
         addr: Handler,
     },
-
-    DefWords {
-        var: Handler,
-        size: usize,
-    },
 }
 
 impl std::fmt::Display for IRItem {
@@ -178,8 +176,6 @@ impl std::fmt::Display for IRItem {
             IRItem::LoadAddr { var } => writeln!(f, "load_addr .V{var}"),
 
             IRItem::Label { addr } => writeln!(f, ".L{addr}"),
-
-            IRItem::DefWords { var: handler, size } => writeln!(f, "def_words .V{handler}, {size}"),
         }
     }
 }

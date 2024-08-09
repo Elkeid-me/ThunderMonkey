@@ -27,14 +27,14 @@ macro_rules! int_arith_helper {
         let r_ty = &$r.ty;
         match (l_ty, r_ty, $expected_ty) {
             (Type::Int, Type::Int, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Int);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Int));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Int);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Int));
                 ir.push_back($op);
                 ir
             }
             (Type::Int, Type::Int, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Int);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Int));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Int);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Int));
                 ir.extend([$op, IRItem::CvtIF]);
                 ir
             }
@@ -50,50 +50,50 @@ macro_rules! cmp_helper {
         let r_ty = &$r.ty;
         match (l_ty, r_ty, $expected_ty) {
             (Type::Int, Type::Int, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Int);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Int));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Int);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Int));
                 ir.push_back($op_1);
                 ir
             }
             (Type::Int, Type::Int, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Int);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Int));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Int);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Int));
                 ir.extend([$op_1, IRItem::CvtIF]);
                 ir
             }
             (Type::Int, Type::Float, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.push_back($op_2);
                 ir
             }
             (Type::Int, Type::Float, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.extend([$op_2, IRItem::CvtIF]);
                 ir
             }
             (Type::Float, Type::Int, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.push_back($op_2);
                 ir
             }
             (Type::Float, Type::Int, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.extend([$op_2, IRItem::CvtIF]);
                 ir
             }
             (Type::Float, Type::Float, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.push_back($op_2);
                 ir
             }
             (Type::Float, Type::Float, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.extend([$op_2, IRItem::CvtIF]);
                 ir
             }
@@ -109,50 +109,50 @@ macro_rules! arith_helper {
         let r_ty = &$r.ty;
         match (l_ty, r_ty, $expected_ty) {
             (Type::Int, Type::Int, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Int);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Int));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Int);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Int));
                 ir.push_back($op_1);
                 ir
             }
             (Type::Int, Type::Int, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Int);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Int));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Int);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Int));
                 ir.extend([$op_1, IRItem::CvtIF]);
                 ir
             }
             (Type::Int, Type::Float, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.extend([$op_2, IRItem::CvtFI]);
                 ir
             }
             (Type::Int, Type::Float, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.push_back($op_2);
                 ir
             }
             (Type::Float, Type::Int, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.extend([$op_2, IRItem::CvtFI]);
                 ir
             }
             (Type::Float, Type::Int, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.push_back($op_2);
                 ir
             }
             (Type::Float, Type::Float, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.extend([$op_2, IRItem::CvtFI]);
                 ir
             }
             (Type::Float, Type::Float, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue(*$l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue(*$r, OpType::Float));
+                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
+                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.push_back($op_2);
                 ir
             }
@@ -162,7 +162,7 @@ macro_rules! arith_helper {
 }
 
 impl Generator {
-    pub fn expr_rvalue(&self, expr: Expr, expected_ty: OpType) -> VecDeque<IRItem> {
+    pub fn expr_rvalue(&self, expr: &Expr, expected_ty: OpType) -> VecDeque<IRItem> {
         let Expr { inner, ty, category: _, is_const: _ } = expr;
         match inner {
             Mod(l, r) => int_arith_helper!(self, l, r, IRItem::Mod, expected_ty),
@@ -185,12 +185,52 @@ impl Generator {
             Les(l, r) => cmp_helper!(self, l, r, IRItem::LtInt, IRItem::LtFloat, expected_ty),
             Leq(l, r) => cmp_helper!(self, l, r, IRItem::LeInt, IRItem::LeFloat, expected_ty),
 
-            LogicAnd(l, r) => todo!(),
-            LogicOr(l, r) => todo!(),
+            LogicAnd(l, r) => {
+                let zero = self.counter.borrow_mut().get();
+                let eval_next = self.counter.borrow_mut().get();
+                let one = self.counter.borrow_mut().get();
+                let next = self.counter.borrow_mut().get();
+                let mut ir = self.expr_rvalue(l, OpType::Int);
+                ir.extend([IRItem::Br { then: eval_next, or_else: zero }, IRItem::Label { addr: eval_next }]);
+                ir.extend(self.expr_rvalue(r, OpType::Int));
+                ir.extend([
+                    IRItem::Br { then: one, or_else: zero },
+                    IRItem::Label { addr: one },
+                    IRItem::PushInt(1),
+                    IRItem::Jmp { label: next },
+                    IRItem::Label { addr: zero },
+                    IRItem::PushInt(0),
+                    IRItem::Jmp { label: next },
+                    IRItem::Label { addr: next },
+                ]);
+
+                ir
+            }
+            LogicOr(l, r) => {
+                let zero = self.counter.borrow_mut().get();
+                let eval_next = self.counter.borrow_mut().get();
+                let one = self.counter.borrow_mut().get();
+                let next = self.counter.borrow_mut().get();
+                let mut ir = self.expr_rvalue(l, OpType::Int);
+                ir.extend([IRItem::Br { then: one, or_else: eval_next }, IRItem::Label { addr: eval_next }]);
+                ir.extend(self.expr_rvalue(r, OpType::Int));
+                ir.extend([
+                    IRItem::Br { then: one, or_else: zero },
+                    IRItem::Label { addr: one },
+                    IRItem::PushInt(1),
+                    IRItem::Jmp { label: next },
+                    IRItem::Label { addr: zero },
+                    IRItem::PushInt(0),
+                    IRItem::Jmp { label: next },
+                    IRItem::Label { addr: next },
+                ]);
+
+                ir
+            },
             LogicNot(expr) => self.expr_rvalue(
-                Expr {
+                &Expr {
                     inner: Neq(
-                        expr,
+                        expr.clone(),
                         Box::new(Expr {
                             inner: Integer(0),
                             ty: Type::Int,
@@ -210,25 +250,25 @@ impl Generator {
                 match (ty, expected_ty) {
                     (Type::Int, OpType::Int) => {
                         let mut ir = VecDeque::from([IRItem::PushInt(0)]);
-                        ir.extend(self.expr_rvalue(*expr, OpType::Int));
+                        ir.extend(self.expr_rvalue(expr, OpType::Int));
                         ir.push_back(IRItem::SubInt);
                         ir
                     }
                     (Type::Int, OpType::Float) => {
                         let mut ir = VecDeque::from([IRItem::PushInt(0)]);
-                        ir.extend(self.expr_rvalue(*expr, OpType::Int));
+                        ir.extend(self.expr_rvalue(expr, OpType::Int));
                         ir.extend([IRItem::SubInt, IRItem::CvtIF]);
                         ir
                     }
                     (Type::Float, OpType::Int) => {
                         let mut ir = VecDeque::from([IRItem::PushFloat(0.0)]);
-                        ir.extend(self.expr_rvalue(*expr, OpType::Float));
+                        ir.extend(self.expr_rvalue(expr, OpType::Float));
                         ir.extend([IRItem::SubFloat, IRItem::CvtFI]);
                         ir
                     }
                     (Type::Float, OpType::Float) => {
                         let mut ir = VecDeque::from([IRItem::PushFloat(0.0)]);
-                        ir.extend(self.expr_rvalue(*expr, OpType::Float));
+                        ir.extend(self.expr_rvalue(expr, OpType::Float));
                         ir.push_back(IRItem::SubInt);
                         ir
                     }
@@ -236,9 +276,9 @@ impl Generator {
                 }
             }
             Not(expr) => self.expr_rvalue(
-                Expr {
+                &Expr {
                     inner: Xor(
-                        expr,
+                        expr.clone(),
                         Box::new(Expr {
                             inner: Integer(-1),
                             ty: Type::Int,
@@ -256,65 +296,79 @@ impl Generator {
             PostDec(_) => todo!(),
             PreInc(_) => todo!(),
             PreDec(_) => todo!(),
-            Assignment(l, r) => todo!(),
-            AddAssign(l, r) => todo!(),
-            SubAssign(l, r) => todo!(),
-            MulAssign(l, r) => todo!(),
-            DivAssign(l, r) => todo!(),
-            ModAssign(l, r) => todo!(),
-            AndAssign(l, r) => todo!(),
-            OrAssign(l, r) => todo!(),
-            XorAssign(l, r) => todo!(),
-            ShLAssign(l, r) => todo!(),
-            SaRAssign(l, r) => todo!(),
+            Assignment(_, _) => todo!(),
+            AddAssign(_, _) => todo!(),
+            SubAssign(_, _) => todo!(),
+            MulAssign(_, _) => todo!(),
+            DivAssign(_, _) => todo!(),
+            ModAssign(_, _) => todo!(),
+            AndAssign(_, _) => todo!(),
+            OrAssign(_, _) => todo!(),
+            XorAssign(_, _) => todo!(),
+            ShLAssign(_, _) => todo!(),
+            SaRAssign(_, _) => todo!(),
             Integer(i) => match expected_ty {
-                OpType::Int => VecDeque::from([IRItem::PushInt(i)]),
-                OpType::Float => VecDeque::from([IRItem::PushFloat(i as f32)]),
+                OpType::Int => VecDeque::from([IRItem::PushInt(*i)]),
+                OpType::Float => VecDeque::from([IRItem::PushFloat(*i as f32)]),
                 OpType::Void => unreachable!(),
             },
             Floating(f) => match expected_ty {
-                OpType::Int => VecDeque::from([IRItem::PushInt(f as i32)]),
-                OpType::Float => VecDeque::from([IRItem::PushFloat(f)]),
+                OpType::Int => VecDeque::from([IRItem::PushInt(*f as i32)]),
+                OpType::Float => VecDeque::from([IRItem::PushFloat(*f)]),
                 OpType::Void => unreachable!(),
             },
             Var(handler) => {
-                let Definition { init: _, ty, id: _, is_global: _, is_arg: _ } = self.symbol_table.get(&handler).unwrap();
+                let Definition { init: _, ty, id: _, is_global: _, is_arg: _ } = self.symbol_table.get(handler).unwrap();
                 match (ty, expected_ty) {
-                    (Type::Int, OpType::Int) => VecDeque::from([IRItem::LoadAddr { var: handler }, IRItem::Load]),
-                    (Type::Int, OpType::Float) => VecDeque::from([IRItem::LoadAddr { var: handler }, IRItem::Load, IRItem::CvtIF]),
-                    (Type::Float, OpType::Int) => VecDeque::from([IRItem::LoadAddr { var: handler }, IRItem::Load, IRItem::CvtFI]),
-                    (Type::Float, OpType::Float) => VecDeque::from([IRItem::LoadAddr { var: handler }, IRItem::Load]),
-                    (Type::Pointer(_, _), OpType::Int) => VecDeque::from([IRItem::LoadAddr { var: handler }, IRItem::Load]),
-                    (Type::Array(_, _), OpType::Int) => VecDeque::from([IRItem::LoadAddr { var: handler }]),
+                    (Type::Int, OpType::Int) => VecDeque::from([IRItem::LoadAddr { var: *handler }, IRItem::Load]),
+                    (Type::Int, OpType::Float) => {
+                        VecDeque::from([IRItem::LoadAddr { var: *handler }, IRItem::Load, IRItem::CvtIF])
+                    }
+                    (Type::Float, OpType::Int) => {
+                        VecDeque::from([IRItem::LoadAddr { var: *handler }, IRItem::Load, IRItem::CvtFI])
+                    }
+                    (Type::Float, OpType::Float) => VecDeque::from([IRItem::LoadAddr { var: *handler }, IRItem::Load]),
+                    (Type::Pointer(_, _), OpType::Int) => VecDeque::from([IRItem::LoadAddr { var: *handler }, IRItem::Load]),
+                    (Type::Array(_, _), OpType::Int) => VecDeque::from([IRItem::LoadAddr { var: *handler }]),
                     _ => unreachable!(),
                 }
             }
             Func(handler, args) => {
                 let num_args = args.len();
-                let ty = &self.symbol_table.get(&handler).unwrap().ty;
+                let ty = &self.symbol_table.get(handler).unwrap().ty;
                 let (ret_ty, arg_tys) = risk!(ty, Type::Function(ret_ty, arg_tys) => (ret_ty.as_ref(), arg_tys.as_slice()));
 
-                let mut ir: VecDeque<_> =
-                    args.into_iter().zip(arg_tys).flat_map(|(expr, ty)| self.expr_rvalue(expr, expected_ty)).collect();
+                let mut ir: VecDeque<_> = args
+                    .into_iter()
+                    .zip(arg_tys)
+                    .flat_map(|(expr, ty)| {
+                        let expected_ty = match ty {
+                            Type::Int | Type::Pointer(_, _) => OpType::Int,
+                            Type::Float => OpType::Float,
+                            _ => unreachable!(),
+                        };
+                        self.expr_rvalue(expr, expected_ty)
+                    })
+                    .collect();
 
                 match (ret_ty, expected_ty) {
-                    (Type::Int, OpType::Int) => ir.push_back(IRItem::CallInt { function: handler, num_args }),
+                    (Type::Int, OpType::Int) => ir.push_back(IRItem::CallInt { function: *handler, num_args }),
 
                     (Type::Int, OpType::Float) => {
-                        ir.extend([IRItem::CallInt { function: handler, num_args }, IRItem::CvtIF]);
+                        ir.extend([IRItem::CallInt { function: *handler, num_args }, IRItem::CvtIF]);
                     }
                     (Type::Float, OpType::Int) => {
-                        ir.extend([IRItem::CallFloat { function: handler, num_args }, IRItem::CvtFI]);
+                        ir.extend([IRItem::CallFloat { function: *handler, num_args }, IRItem::CvtFI]);
                     }
-                    (Type::Float, OpType::Float) => ir.push_back(IRItem::CallFloat { function: handler, num_args }),
-                    (_, OpType::Void) => ir.push_back(IRItem::CallVoid { function: handler, num_args }),
+                    (Type::Float, OpType::Float) => ir.push_back(IRItem::CallFloat { function: *handler, num_args }),
+                    (_, OpType::Void) => ir.push_back(IRItem::CallVoid { function: *handler, num_args }),
                     _ => unreachable!(),
                 };
 
                 ir
             }
             ArrayElem(handler, subscripts) => {
-                let mut ir = self.array_elem_helper(handler, subscripts);
+                let mut ir = self.array_elem_helper(*handler, subscripts);
 
                 match (ty, expected_ty) {
                     (Type::Int, OpType::Int) | (Type::Float, OpType::Float) => ir.push_back(IRItem::Load),
