@@ -1,0 +1,280 @@
+// Copyright (C) 2024 一梦全能 team
+//
+// This file is part of ThunderMonkey.
+//
+// ThunderMonkey is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// ThunderMonkey is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
+
+#![allow(warnings)]
+use std::fmt::{Display, Formatter, Result};
+
+#[derive(Clone)]
+pub enum Inst {
+    Push(Vec<Reg>),
+    Pop(Vec<Reg>),
+    VPush(Vec<Reg>),
+    VPop(Vec<Reg>),
+    VEor(Reg, Reg, Reg),
+
+    Blx(Reg),
+    Bx(Reg),
+
+    BxNe(Reg),
+    Cmp(Reg, Reg),
+    VCmp(Reg, Reg),
+
+    Lw(Reg, Reg),
+    Sw(Reg, Reg),
+    Ldr(Reg, i32),
+    La(Reg, String),
+    Mv(Reg, Reg),
+
+    Load1Eq(Reg),
+    Load1Ne(Reg),
+    Load1Ge(Reg),
+    Load1Gt(Reg),
+    Load1Le(Reg),
+    Load1Lt(Reg),
+
+    VLoad1Eq(Reg),
+    VLoad1Ne(Reg),
+    VLoad1Ge(Reg),
+    VLoad1Gt(Reg),
+    VLoad1Le(Reg),
+    VLoad1Lt(Reg),
+
+    Add(Reg, Reg, Reg),
+    Sub(Reg, Reg, Reg),
+    Mul(Reg, Reg, Reg),
+    Sdiv(Reg, Reg, Reg),
+
+    VAddF32(Reg, Reg, Reg),
+    VSubF32(Reg, Reg, Reg),
+    VMulF32(Reg, Reg, Reg),
+    VDivF32(Reg, Reg, Reg),
+
+    Eor(Reg, Reg, Reg),
+    Orr(Reg, Reg, Reg),
+    And(Reg, Reg, Reg),
+    Lsl(Reg, Reg, Reg),
+    Lsr(Reg, Reg, Reg),
+    Asr(Reg, Reg, Reg),
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub enum Reg {
+    R0,
+    R1,
+    R2,
+    R3,
+    R4,
+    R5,
+    R6,
+    R7,
+    R8,
+    R9,
+    R10,
+    R11, // BP
+    R12,
+    R13, // SP
+    R14, // LR
+    R15, // PC
+
+    S0,
+    S1,
+    S2,
+    S3,
+    S4,
+    S5,
+    S6,
+    S7,
+    S8,
+    S9,
+    S10,
+    S11,
+    S12,
+    S13,
+    S14,
+    S15,
+}
+
+#[derive(Clone)]
+pub enum Directive {
+    Text,
+    Global(String),
+    Data,
+    Zero(usize),
+    Word(Vec<u32>),
+}
+
+#[derive(Clone)]
+pub enum ARMItem {
+    Label(String),
+    Inst(Inst),
+    Directive(Directive),
+}
+
+pub type ARM = Vec<ARMItem>;
+
+impl Display for Reg {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match self {
+            Reg::R0 => write!(f, "r0"),
+            Reg::R1 => write!(f, "r1"),
+            Reg::R2 => write!(f, "r2"),
+            Reg::R3 => write!(f, "r3"),
+            Reg::R4 => write!(f, "r4"),
+            Reg::R5 => write!(f, "r5"),
+            Reg::R6 => write!(f, "r6"),
+            Reg::R7 => write!(f, "r7"),
+            Reg::R8 => write!(f, "r8"),
+            Reg::R9 => write!(f, "r9"),
+            Reg::R10 => write!(f, "r10"),
+            Reg::R11 => write!(f, "r11"),
+            Reg::R12 => write!(f, "r12"),
+            Reg::R13 => write!(f, "r13"),
+            Reg::R14 => write!(f, "r14"),
+            Reg::R15 => write!(f, "r15"),
+
+            Reg::S0 => write!(f, "s0"),
+            Reg::S1 => write!(f, "s1"),
+            Reg::S2 => write!(f, "s2"),
+            Reg::S3 => write!(f, "s3"),
+            Reg::S4 => write!(f, "s4"),
+            Reg::S5 => write!(f, "s5"),
+            Reg::S6 => write!(f, "s6"),
+            Reg::S7 => write!(f, "s7"),
+            Reg::S8 => write!(f, "s8"),
+            Reg::S9 => write!(f, "s9"),
+            Reg::S10 => write!(f, "s10"),
+            Reg::S11 => write!(f, "s11"),
+            Reg::S12 => write!(f, "s12"),
+            Reg::S13 => write!(f, "s13"),
+            Reg::S14 => write!(f, "s14"),
+            Reg::S15 => write!(f, "s15"),
+        }
+    }
+}
+
+pub trait ARMTrait {
+    fn add_label(&mut self, label: String);
+    fn add_inst(&mut self, inst: Inst);
+    fn add_directive(&mut self, directive: Directive);
+}
+
+impl ARMTrait for ARM {
+    fn add_label(&mut self, label: String) {
+        self.push(ARMItem::Label(label));
+    }
+    fn add_inst(&mut self, inst: Inst) {
+        self.push(ARMItem::Inst(inst));
+    }
+    fn add_directive(&mut self, directive: Directive) {
+        self.push(ARMItem::Directive(directive));
+    }
+}
+
+impl Display for Inst {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match self {
+            Self::Lw(rd, rs) => write!(f, "ldr {rd}, [{rs}]"),
+            Self::Sw(rs_1, rs_2) => write!(f, "str {rs_1}, [{rs_2}]"),
+
+            Self::Add(rd, rs_1, rs_2) => write!(f, "add {rd}, {rs_1}, {rs_2}"),
+            Self::Sub(rd, rs_1, rs_2) => write!(f, "sub {rd}, {rs_1}, {rs_2}"),
+            Self::And(rd, rs_1, rs_2) => write!(f, "and {rd}, {rs_1}, {rs_2}"),
+            Self::Mul(rd, rs_1, rs_2) => write!(f, "mul {rd}, {rs_1}, {rs_2}"),
+            Inst::Sdiv(rd, rs_1, rs_2) => todo!(),
+
+            Self::La(rd, address) => write!(f, "la {rd}, {address}"),
+            Self::Mv(rd, rs) => write!(f, "mv {rd}, {rs}"),
+
+            Inst::Push(list) => {
+                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
+                write!(f, "push {{{}}}", data.as_slice().join(", "))
+            }
+            Inst::Pop(list) => {
+                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
+                write!(f, "pop {{{}}}", data.as_slice().join(", "))
+            }
+            Inst::VPush(list) => {
+                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
+                write!(f, "vpush {{{}}}", data.as_slice().join(", "))
+            }
+            Inst::VPop(list) => {
+                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
+                write!(f, "vpop {{{}}}", data.as_slice().join(", "))
+            }
+            Inst::Blx(reg) => write!(f, "blx {reg}"),
+            Inst::Bx(reg) => write!(f, "bx {reg}"),
+            Inst::Ldr(reg, imm) => write!(f, "ldr {reg}, #{imm}"),
+            Inst::La(reg, label) => write!(f, "ldr {reg}, {label}"),
+            Inst::Mv(rd, rs) => write!(f, "mov {rd}, {rs}"),
+
+            Inst::VAddF32(rd, rs_1, rs_2) => write!(f, "vadd.f32 {rd}, {rs_1}, {rs_2}"),
+            Inst::VSubF32(rd, rs_1, rs_2) => write!(f, "vsub.f32 {rd}, {rs_1}, {rs_2}"),
+            Inst::VMulF32(rd, rs_1, rs_2) => write!(f, "vmul.f32 {rd}, {rs_1}, {rs_2}"),
+            Inst::VDivF32(rd, rs_1, rs_2) => write!(f, "vdiv.f32 {rd}, {rs_1}, {rs_2}"),
+            Inst::Eor(rd, rs_1, rs_2) => write!(f, "eor {rd}, {rs_1}, {rs_2}"),
+            Inst::Orr(rd, rs_1, rs_2) => write!(f, "orr {rd}, {rs_1}, {rs_2}"),
+            Inst::And(rd, rs_1, rs_2) => write!(f, "and {rd}, {rs_1}, {rs_2}"),
+            Inst::Lsl(rd, rs_1, rs_2) => write!(f, "lsl {rd}, {rs_1}, {rs_2}"),
+            Inst::Lsr(rd, rs_1, rs_2) => write!(f, "lsr {rd}, {rs_1}, {rs_2}"),
+            Inst::Asr(rd, rs_1, rs_2) => write!(f, "asr {rd}, {rs_1}, {rs_2}"),
+            Inst::BxNe(reg) => write!(f, "bxne {reg}"),
+            Inst::Cmp(rd, rs) => write!(f, "cmp {rd}, {rs}"),
+            Inst::VCmp(rd, rs) => write!(f, "vcmp {rd}, {rs}"),
+
+            Inst::Load1Eq(reg) => write!(f, "moveq {reg}, #1"),
+            Inst::Load1Ne(reg) => write!(f, "movne {reg}, #1"),
+            Inst::Load1Ge(reg) => write!(f, "movge {reg}, #1"),
+            Inst::Load1Gt(reg) => write!(f, "movgt {reg}, #1"),
+            Inst::Load1Le(reg) => write!(f, "movle {reg}, #1"),
+            Inst::Load1Lt(reg) => write!(f, "movlt {reg}, #1"),
+
+            Inst::VEor(rd, rs_1, rs_2) => write!(f, "veor.f32 {rd}, {rs_1}, {rs_2}"),
+
+            Inst::VLoad1Eq(reg) => write!(f, "vldreq.f32 {reg}, #1"),
+            Inst::VLoad1Ne(reg) => write!(f, "vldrne.f32 {reg}, #1"),
+            Inst::VLoad1Ge(reg) => write!(f, "vldrge.f32 {reg}, #1"),
+            Inst::VLoad1Gt(reg) => write!(f, "vldrgt.f32 {reg}, #1"),
+            Inst::VLoad1Le(reg) => write!(f, "vldrle.f32 {reg}, #1"),
+            Inst::VLoad1Lt(reg) => write!(f, "vldrlt.f32 {reg}, #1"),
+        }
+    }
+}
+
+impl Display for Directive {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match self {
+            Self::Text => write!(f, ".text"),
+            Self::Global(label) => write!(f, ".global {label}"),
+            Self::Data => write!(f, ".data"),
+            Self::Zero(len) => write!(f, ".zero {len}"),
+            Self::Word(nums) => {
+                let data: Vec<_> = nums.iter().map(u32::to_string).collect();
+                write!(f, ".word {}", data.as_slice().join(", "))
+            }
+        }
+    }
+}
+
+impl Display for ARMItem {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match self {
+            Self::Label(label) => writeln!(f, "{label}:"),
+            Self::Inst(inst) => writeln!(f, "    {inst}"),
+            Self::Directive(directive) => writeln!(f, "{directive}"),
+        }
+    }
+}

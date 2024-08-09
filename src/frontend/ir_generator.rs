@@ -63,7 +63,7 @@ impl Generator {
                 self.global_def(handler);
             }
         }
-        IR { symbols: self.global_items.keys().copied().collect(), ir: self.global_items }
+        IR { symbol_table: self.symbol_table, ir: self.global_items }
     }
 
     pub(self) fn array_elem_helper(&self, array: Handler, subscripts: &[Expr]) -> VecDeque<IRItem> {

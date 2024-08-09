@@ -16,8 +16,8 @@
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
 mod arg_parse;
-mod frontend;
 mod backend;
+mod frontend;
 mod preprocessor;
 
 use arg_parse::{Mode, ParsedArgs};
@@ -45,24 +45,21 @@ fn compile() -> Result<(), Box<dyn std::error::Error>> {
     let code = preprocess(read_to_string(input)?);
     // let code = read_to_string(input)?;
     let ir = frontend::generator_ir(&code)?;
+    let asm = backend::hyoksin::asm_generate(ir);
     let mut f = File::create(output)?;
     match mode {
-        Mode::Debug => {
-            println!("使用调试模式");
-            // write!(f, "{ast:#?}")?;
-        }
-        Mode::Optimization => {
-            println!("使用优化模式");
-            // write!(f, "{ast:#?}")?;
-        }
+        Mode::Debug => println!("使用调试模式"),
+        Mode::Optimization => println!("使用优化模式"),
+    }
+
+    for i in asm {
+        write!(f, "{i}")?;
     }
     Ok(())
 }
 
 fn main() {
-    if cfg!(target_os = "linux") {
-
-    }
+    if cfg!(target_os = "linux") {}
     if let Err(s) = compile() {
         println!("{s}");
         std::process::exit(1);

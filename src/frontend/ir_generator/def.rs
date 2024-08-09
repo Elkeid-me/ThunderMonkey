@@ -24,9 +24,6 @@ use std::vec;
 impl Generator {
     fn fun_def(&mut self, handler: Handler, block: &Block, arg_handlers: &[Handler], ret_ty: &Type) {
         self.context.clear();
-        for &handler in arg_handlers {
-            self.context.insert(handler, 1);
-        }
 
         let ir = self.block(block, 0, 0, ret_ty).0;
 
