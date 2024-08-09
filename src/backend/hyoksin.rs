@@ -70,7 +70,7 @@ fn function(
     asm.add_inst(Push(R14));
     asm.add_inst(Mov(R11, R13));
     asm.add_inst(Mov32(R0, stack_size));
-    asm.add_inst(Add(R11, R11, R0));
+    asm.add_inst(Add(R13, R0, R13));
     for ir in code {
         match ir {
             IRItem::AddInt => {
