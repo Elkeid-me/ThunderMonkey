@@ -38,7 +38,7 @@ ptr_parameter         =  { non_void_type ~ identifier ~ "[" ~ "]" ~ array_length
 var_parameter         =  { non_void_type ~ identifier }
 
 int_keyword      = @{ "int" ~ !(ASCII_ALPHANUMERIC | "_") }
-float_keyword    = @{ "float" ~ !(ASCII_ALPHANUMERIC | "_") }
+float_keyword    = @{ "flot" ~ !(ASCII_ALPHANUMERIC | "_") }
 void_keyword     = @{ "void" ~ !(ASCII_ALPHANUMERIC | "_") }
 const_keyword    = @{ "const" ~ !(ASCII_ALPHANUMERIC | "_")}
 return_keyword   = @{ "return" ~ !(ASCII_ALPHANUMERIC | "_") }
