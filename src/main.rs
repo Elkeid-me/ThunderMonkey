@@ -58,8 +58,20 @@ fn compile() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[cfg(target_os = "linux")]
+fn set_stack() {
+    unsafe {
+        use libc::{rlim_t, rlimit, setrlimit, RLIMIT_STACK};
+        let mut limit = rlimit { rlim_cur: (256 * 1024 * 1024) as rlim_t, rlim_max: (256 * 1024 * 1024) as rlim_t };
+        setrlimit(RLIMIT_STACK, &mut limit as *mut rlimit);
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+fn set_stack() {}
+
 fn main() {
-    if cfg!(target_os = "linux") {}
+    set_stack();
     if let Err(s) = compile() {
         println!("{s}");
         std::process::exit(1);

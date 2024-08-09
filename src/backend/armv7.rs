@@ -194,62 +194,59 @@ impl Display for Inst {
             Self::Sub(rd, rs_1, rs_2) => write!(f, "sub {rd}, {rs_1}, {rs_2}"),
             Self::And(rd, rs_1, rs_2) => write!(f, "and {rd}, {rs_1}, {rs_2}"),
             Self::Mul(rd, rs_1, rs_2) => write!(f, "mul {rd}, {rs_1}, {rs_2}"),
-            Inst::Sdiv(rd, rs_1, rs_2) => todo!(),
+            Self::Sdiv(rd, rs_1, rs_2) => todo!(),
 
-            Self::La(rd, address) => write!(f, "la {rd}, {address}"),
-            Self::Mv(rd, rs) => write!(f, "mv {rd}, {rs}"),
-
-            Inst::Push(list) => {
+            Self::Push(list) => {
                 let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
                 write!(f, "push {{{}}}", data.as_slice().join(", "))
             }
-            Inst::Pop(list) => {
+            Self::Pop(list) => {
                 let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
                 write!(f, "pop {{{}}}", data.as_slice().join(", "))
             }
-            Inst::VPush(list) => {
+            Self::VPush(list) => {
                 let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
                 write!(f, "vpush {{{}}}", data.as_slice().join(", "))
             }
-            Inst::VPop(list) => {
+            Self::VPop(list) => {
                 let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
                 write!(f, "vpop {{{}}}", data.as_slice().join(", "))
             }
-            Inst::Blx(reg) => write!(f, "blx {reg}"),
-            Inst::Bx(reg) => write!(f, "bx {reg}"),
-            Inst::Ldr(reg, imm) => write!(f, "ldr {reg}, #{imm}"),
-            Inst::La(reg, label) => write!(f, "ldr {reg}, {label}"),
-            Inst::Mv(rd, rs) => write!(f, "mov {rd}, {rs}"),
+            Self::Blx(reg) => write!(f, "blx {reg}"),
+            Self::Bx(reg) => write!(f, "bx {reg}"),
+            Self::Ldr(reg, imm) => write!(f, "ldr {reg}, #{imm}"),
+            Self::La(reg, label) => write!(f, "ldr {reg}, {label}"),
+            Self::Mv(rd, rs) => write!(f, "mov {rd}, {rs}"),
 
-            Inst::VAddF32(rd, rs_1, rs_2) => write!(f, "vadd.f32 {rd}, {rs_1}, {rs_2}"),
-            Inst::VSubF32(rd, rs_1, rs_2) => write!(f, "vsub.f32 {rd}, {rs_1}, {rs_2}"),
-            Inst::VMulF32(rd, rs_1, rs_2) => write!(f, "vmul.f32 {rd}, {rs_1}, {rs_2}"),
-            Inst::VDivF32(rd, rs_1, rs_2) => write!(f, "vdiv.f32 {rd}, {rs_1}, {rs_2}"),
-            Inst::Eor(rd, rs_1, rs_2) => write!(f, "eor {rd}, {rs_1}, {rs_2}"),
-            Inst::Orr(rd, rs_1, rs_2) => write!(f, "orr {rd}, {rs_1}, {rs_2}"),
-            Inst::And(rd, rs_1, rs_2) => write!(f, "and {rd}, {rs_1}, {rs_2}"),
-            Inst::Lsl(rd, rs_1, rs_2) => write!(f, "lsl {rd}, {rs_1}, {rs_2}"),
-            Inst::Lsr(rd, rs_1, rs_2) => write!(f, "lsr {rd}, {rs_1}, {rs_2}"),
-            Inst::Asr(rd, rs_1, rs_2) => write!(f, "asr {rd}, {rs_1}, {rs_2}"),
-            Inst::BxNe(reg) => write!(f, "bxne {reg}"),
-            Inst::Cmp(rd, rs) => write!(f, "cmp {rd}, {rs}"),
-            Inst::VCmp(rd, rs) => write!(f, "vcmp {rd}, {rs}"),
+            Self::VAddF32(rd, rs_1, rs_2) => write!(f, "vadd.f32 {rd}, {rs_1}, {rs_2}"),
+            Self::VSubF32(rd, rs_1, rs_2) => write!(f, "vsub.f32 {rd}, {rs_1}, {rs_2}"),
+            Self::VMulF32(rd, rs_1, rs_2) => write!(f, "vmul.f32 {rd}, {rs_1}, {rs_2}"),
+            Self::VDivF32(rd, rs_1, rs_2) => write!(f, "vdiv.f32 {rd}, {rs_1}, {rs_2}"),
+            Self::Eor(rd, rs_1, rs_2) => write!(f, "eor {rd}, {rs_1}, {rs_2}"),
+            Self::Orr(rd, rs_1, rs_2) => write!(f, "orr {rd}, {rs_1}, {rs_2}"),
+            Self::And(rd, rs_1, rs_2) => write!(f, "and {rd}, {rs_1}, {rs_2}"),
+            Self::Lsl(rd, rs_1, rs_2) => write!(f, "lsl {rd}, {rs_1}, {rs_2}"),
+            Self::Lsr(rd, rs_1, rs_2) => write!(f, "lsr {rd}, {rs_1}, {rs_2}"),
+            Self::Asr(rd, rs_1, rs_2) => write!(f, "asr {rd}, {rs_1}, {rs_2}"),
+            Self::BxNe(reg) => write!(f, "bxne {reg}"),
+            Self::Cmp(rd, rs) => write!(f, "cmp {rd}, {rs}"),
+            Self::VCmp(rd, rs) => write!(f, "vcmp {rd}, {rs}"),
 
-            Inst::Load1Eq(reg) => write!(f, "moveq {reg}, #1"),
-            Inst::Load1Ne(reg) => write!(f, "movne {reg}, #1"),
-            Inst::Load1Ge(reg) => write!(f, "movge {reg}, #1"),
-            Inst::Load1Gt(reg) => write!(f, "movgt {reg}, #1"),
-            Inst::Load1Le(reg) => write!(f, "movle {reg}, #1"),
-            Inst::Load1Lt(reg) => write!(f, "movlt {reg}, #1"),
+            Self::Load1Eq(reg) => write!(f, "moveq {reg}, #1"),
+            Self::Load1Ne(reg) => write!(f, "movne {reg}, #1"),
+            Self::Load1Ge(reg) => write!(f, "movge {reg}, #1"),
+            Self::Load1Gt(reg) => write!(f, "movgt {reg}, #1"),
+            Self::Load1Le(reg) => write!(f, "movle {reg}, #1"),
+            Self::Load1Lt(reg) => write!(f, "movlt {reg}, #1"),
 
-            Inst::VEor(rd, rs_1, rs_2) => write!(f, "veor.f32 {rd}, {rs_1}, {rs_2}"),
+            Self::VEor(rd, rs_1, rs_2) => write!(f, "veor.f32 {rd}, {rs_1}, {rs_2}"),
 
-            Inst::VLoad1Eq(reg) => write!(f, "vldreq.f32 {reg}, #1"),
-            Inst::VLoad1Ne(reg) => write!(f, "vldrne.f32 {reg}, #1"),
-            Inst::VLoad1Ge(reg) => write!(f, "vldrge.f32 {reg}, #1"),
-            Inst::VLoad1Gt(reg) => write!(f, "vldrgt.f32 {reg}, #1"),
-            Inst::VLoad1Le(reg) => write!(f, "vldrle.f32 {reg}, #1"),
-            Inst::VLoad1Lt(reg) => write!(f, "vldrlt.f32 {reg}, #1"),
+            Self::VLoad1Eq(reg) => write!(f, "vldreq.f32 {reg}, #1"),
+            Self::VLoad1Ne(reg) => write!(f, "vldrne.f32 {reg}, #1"),
+            Self::VLoad1Ge(reg) => write!(f, "vldrge.f32 {reg}, #1"),
+            Self::VLoad1Gt(reg) => write!(f, "vldrgt.f32 {reg}, #1"),
+            Self::VLoad1Le(reg) => write!(f, "vldrle.f32 {reg}, #1"),
+            Self::VLoad1Lt(reg) => write!(f, "vldrlt.f32 {reg}, #1"),
         }
     }
 }

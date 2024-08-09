@@ -17,8 +17,8 @@
 
 use super::armv7::{Inst::*, Reg::*, *};
 use super::chollima::*;
-use crate::frontend::ast::{Definition, Init};
-use crate::{risk, Handler, HashMap};
+use crate::frontend::ast::Definition;
+use crate::{Handler, HashMap};
 use std::collections::VecDeque;
 
 ///  .......
@@ -49,7 +49,7 @@ fn function(
 
     let mut stack_size = 0;
     for (&handler, &size) in context.iter() {
-        stack_size -= size as i32;
+        stack_size -= size as i32 * 4;
         c.insert(handler, stack_size);
     }
 
@@ -166,35 +166,35 @@ fn function(
                 asm.add_inst(Cmp(R0, R1));
                 asm.add_inst(Load1Ne(R2));
                 asm.add_inst(Push(vec![R2]));
-            },
+            }
             IRItem::LeInt => {
                 asm.add_inst(Eor(R2, R2, R2));
                 asm.add_inst(Pop(vec![R1, R0]));
                 asm.add_inst(Cmp(R0, R1));
                 asm.add_inst(Load1Le(R2));
                 asm.add_inst(Push(vec![R2]));
-            },
+            }
             IRItem::LtInt => {
                 asm.add_inst(Eor(R2, R2, R2));
                 asm.add_inst(Pop(vec![R1, R0]));
                 asm.add_inst(Cmp(R0, R1));
                 asm.add_inst(Load1Lt(R2));
                 asm.add_inst(Push(vec![R2]));
-            },
+            }
             IRItem::GeInt => {
                 asm.add_inst(Eor(R2, R2, R2));
                 asm.add_inst(Pop(vec![R1, R0]));
                 asm.add_inst(Cmp(R0, R1));
                 asm.add_inst(Load1Ge(R2));
                 asm.add_inst(Push(vec![R2]));
-            },
+            }
             IRItem::GtInt => {
                 asm.add_inst(Eor(R2, R2, R2));
                 asm.add_inst(Pop(vec![R1, R0]));
                 asm.add_inst(Cmp(R0, R1));
                 asm.add_inst(Load1Gt(R2));
                 asm.add_inst(Push(vec![R2]));
-            },
+            }
 
             IRItem::EqFloat => {
                 asm.add_inst(VEor(S2, S2, S2));
@@ -202,42 +202,42 @@ fn function(
                 asm.add_inst(VCmp(S0, S1));
                 asm.add_inst(VLoad1Eq(S2));
                 asm.add_inst(VPush(vec![S2]));
-            },
+            }
             IRItem::NeFloat => {
                 asm.add_inst(VEor(S2, S2, S2));
                 asm.add_inst(VPop(vec![S1, S0]));
                 asm.add_inst(VCmp(S0, S1));
                 asm.add_inst(VLoad1Ne(S2));
                 asm.add_inst(VPush(vec![S2]));
-            },
+            }
             IRItem::LeFloat => {
                 asm.add_inst(VEor(S2, S2, S2));
                 asm.add_inst(VPop(vec![S1, S0]));
                 asm.add_inst(VCmp(S0, S1));
                 asm.add_inst(VLoad1Le(S2));
                 asm.add_inst(VPush(vec![S2]));
-            },
+            }
             IRItem::LtFloat => {
                 asm.add_inst(VEor(S2, S2, S2));
                 asm.add_inst(VPop(vec![S1, S0]));
                 asm.add_inst(VCmp(S0, S1));
                 asm.add_inst(VLoad1Lt(S2));
                 asm.add_inst(VPush(vec![S2]));
-            },
+            }
             IRItem::GeFloat => {
                 asm.add_inst(VEor(S2, S2, S2));
                 asm.add_inst(VPop(vec![S1, S0]));
                 asm.add_inst(VCmp(S0, S1));
                 asm.add_inst(VLoad1Ge(S2));
                 asm.add_inst(VPush(vec![S2]));
-            },
+            }
             IRItem::GtFloat => {
                 asm.add_inst(VEor(S2, S2, S2));
                 asm.add_inst(VPop(vec![S1, S0]));
                 asm.add_inst(VCmp(S0, S1));
                 asm.add_inst(VLoad1Gt(S2));
                 asm.add_inst(VPush(vec![S2]));
-            },
+            }
 
             IRItem::PushFloat(f) => {
                 asm.add_inst(Ldr(R0, f.to_bits() as i32));
