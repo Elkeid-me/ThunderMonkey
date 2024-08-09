@@ -203,7 +203,7 @@ impl Display for Inst {
 
             Self::Blx(reg) => write!(f, "blx {reg}"),
             Self::Bx(reg) => write!(f, "bx {reg}"),
-            Self::Ldr(reg, imm) => write!(f, "mov32 {reg}, #{imm}"),
+            Self::Ldr(reg, imm) => write!(f, "mov32 {reg}, #{}", *imm as u32),
             Self::La(reg, label) => write!(f, "mov32 {reg}, {label}"),
             Self::Mv(rd, rs) => write!(f, "mov {rd}, {rs}"),
 
