@@ -263,7 +263,7 @@ fn parse_prefix(op: Pair<Rule>, expr: Result<Expr, CompilerError>) -> Result<Exp
             let inner = match expr_inner {
                 Integer(i) => Integer((i == 0) as i32),
                 Floating(f) => Integer((f == 0.0) as i32),
-                inner => Not(Box::new(Expr { inner, ty: expr_ty, category, is_const })),
+                inner => LogicNot(Box::new(Expr { inner, ty: expr_ty, category, is_const })),
             };
             Ok(Expr { inner, ty: Int, category: RValue, is_const })
         }
