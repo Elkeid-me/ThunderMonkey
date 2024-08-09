@@ -20,10 +20,10 @@ use std::fmt::{Display, Formatter, Result};
 
 #[derive(Clone)]
 pub enum Inst {
-    Push(Vec<Reg>),
-    Pop(Vec<Reg>),
-    VPush(Vec<Reg>),
-    VPop(Vec<Reg>),
+    Push(Reg),
+    Pop(Reg),
+    VPush(Reg),
+    VPop(Reg),
     VEor(Reg, Reg, Reg),
 
     Blx(Reg),
@@ -196,26 +196,15 @@ impl Display for Inst {
             Self::Mul(rd, rs_1, rs_2) => write!(f, "mul {rd}, {rs_1}, {rs_2}"),
             Self::Sdiv(rd, rs_1, rs_2) => write!(f, "sdiv {rd}, {rs_1}, {rs_2}"),
 
-            Self::Push(list) => {
-                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
-                write!(f, "push {{{}}}", data.as_slice().join(", "))
-            }
-            Self::Pop(list) => {
-                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
-                write!(f, "pop {{{}}}", data.as_slice().join(", "))
-            }
-            Self::VPush(list) => {
-                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
-                write!(f, "vpush {{{}}}", data.as_slice().join(", "))
-            }
-            Self::VPop(list) => {
-                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
-                write!(f, "vpop {{{}}}", data.as_slice().join(", "))
-            }
+            Self::Push(reg) => write!(f, "push {{{reg}}}"),
+            Self::Pop(reg) => write!(f, "pop {{{reg}}}"),
+            Self::VPush(reg) => write!(f, "vpush {{{reg}}}"),
+            Self::VPop(reg) => write!(f, "vpop {{{reg}}}"),
+
             Self::Blx(reg) => write!(f, "blx {reg}"),
             Self::Bx(reg) => write!(f, "bx {reg}"),
-            Self::Ldr(reg, imm) => write!(f, "ldr {reg}, #{imm}"),
-            Self::La(reg, label) => write!(f, "ldr {reg}, {label}"),
+            Self::Ldr(reg, imm) => write!(f, "mov32 {reg}, #{imm}"),
+            Self::La(reg, label) => write!(f, "mov32 {reg}, {label}"),
             Self::Mv(rd, rs) => write!(f, "mov {rd}, {rs}"),
 
             Self::VAddF32(rd, rs_1, rs_2) => write!(f, "vadd.f32 {rd}, {rs_1}, {rs_2}"),
