@@ -20,59 +20,60 @@ use std::fmt::{Display, Formatter, Result};
 
 #[derive(Clone)]
 pub enum Inst {
-    Push(Vec<Reg>),
-    Pop(Vec<Reg>),
-    VPush(Vec<Reg>),
-    VPop(Vec<Reg>),
-    VEor(Reg, Reg, Reg),
+    Push(GPR),
+    Pop(GPR),
+    VPush(FPR),
+    VPop(FPR),
 
-    Blx(Reg),
-    Bx(Reg),
+    Blx(GPR),
+    Bx(GPR),
 
-    BxNe(Reg),
-    Cmp(Reg, Reg),
-    VCmpF32(Reg, Reg),
+    BxNe(GPR),
+    Cmp(GPR, GPR),
+    VCmpF32(FPR, FPR),
 
-    Lw(Reg, Reg),
-    Sw(Reg, Reg),
-    Ldr(Reg, i32),
-    La(Reg, String),
-    Mv(Reg, Reg),
+    Ldr(GPR, GPR),
+    Sdr(GPR, GPR),
+    Mov32(GPR, i32),
+    Mov32Label(GPR, String),
+    Mov(GPR, GPR),
 
-    Load1Eq(Reg),
-    Load1Ne(Reg),
-    Load1Ge(Reg),
-    Load1Gt(Reg),
-    Load1Le(Reg),
-    Load1Lt(Reg),
+    MovImm(GPR, i32),
+    MovImmEq(GPR, i32),
+    MovImmNe(GPR, i32),
+    MovImmGe(GPR, i32),
+    MovImmGt(GPR, i32),
+    MovImmLe(GPR, i32),
+    MovImmLt(GPR, i32),
 
-    VLoad1Eq(Reg),
-    VLoad1Ne(Reg),
-    VLoad1Ge(Reg),
-    VLoad1Gt(Reg),
-    VLoad1Le(Reg),
-    VLoad1Lt(Reg),
+    VMov(FPR, GPR),
+    VMovEq(FPR, GPR),
+    VMovNe(FPR, GPR),
+    VMovGe(FPR, GPR),
+    VMovGt(FPR, GPR),
+    VMovLe(FPR, GPR),
+    VMovLt(FPR, GPR),
 
-    Add(Reg, Reg, Reg),
-    Sub(Reg, Reg, Reg),
-    Mul(Reg, Reg, Reg),
-    Sdiv(Reg, Reg, Reg),
+    Add(GPR, GPR, GPR),
+    Sub(GPR, GPR, GPR),
+    Mul(GPR, GPR, GPR),
+    Sdiv(GPR, GPR, GPR),
 
-    VAddF32(Reg, Reg, Reg),
-    VSubF32(Reg, Reg, Reg),
-    VMulF32(Reg, Reg, Reg),
-    VDivF32(Reg, Reg, Reg),
+    VAddF32(FPR, FPR, FPR),
+    VSubF32(FPR, FPR, FPR),
+    VMulF32(FPR, FPR, FPR),
+    VDivF32(FPR, FPR, FPR),
 
-    Eor(Reg, Reg, Reg),
-    Orr(Reg, Reg, Reg),
-    And(Reg, Reg, Reg),
-    Lsl(Reg, Reg, Reg),
-    Lsr(Reg, Reg, Reg),
-    Asr(Reg, Reg, Reg),
+    Eor(GPR, GPR, GPR),
+    Orr(GPR, GPR, GPR),
+    And(GPR, GPR, GPR),
+    Lsl(GPR, GPR, GPR),
+    Lsr(GPR, GPR, GPR),
+    Asr(GPR, GPR, GPR),
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum Reg {
+pub enum GPR {
     R0,
     R1,
     R2,
@@ -80,16 +81,18 @@ pub enum Reg {
     R4,
     R5,
     R6,
-    R7,
+    R7, // BP
     R8,
     R9,
     R10,
-    R11, // BP
+    R11,
     R12,
     R13, // SP
     R14, // LR
     R15, // PC
-
+}
+#[derive(Clone, Copy, PartialEq)]
+pub enum FPR {
     S0,
     S1,
     S2,
@@ -106,6 +109,22 @@ pub enum Reg {
     S13,
     S14,
     S15,
+    S16,
+    S17,
+    S18,
+    S19,
+    S20,
+    S21,
+    S22,
+    S23,
+    S24,
+    S25,
+    S26,
+    S27,
+    S28,
+    S29,
+    S30,
+    S31,
 }
 
 #[derive(Clone)]
@@ -126,42 +145,65 @@ pub enum ARMItem {
 
 pub type ARM = Vec<ARMItem>;
 
-impl Display for Reg {
+impl Display for GPR {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
-            Reg::R0 => write!(f, "r0"),
-            Reg::R1 => write!(f, "r1"),
-            Reg::R2 => write!(f, "r2"),
-            Reg::R3 => write!(f, "r3"),
-            Reg::R4 => write!(f, "r4"),
-            Reg::R5 => write!(f, "r5"),
-            Reg::R6 => write!(f, "r6"),
-            Reg::R7 => write!(f, "r7"),
-            Reg::R8 => write!(f, "r8"),
-            Reg::R9 => write!(f, "r9"),
-            Reg::R10 => write!(f, "r10"),
-            Reg::R11 => write!(f, "r11"),
-            Reg::R12 => write!(f, "r12"),
-            Reg::R13 => write!(f, "r13"),
-            Reg::R14 => write!(f, "r14"),
-            Reg::R15 => write!(f, "r15"),
+            Self::R0 => write!(f, "r0"),
+            Self::R1 => write!(f, "r1"),
+            Self::R2 => write!(f, "r2"),
+            Self::R3 => write!(f, "r3"),
+            Self::R4 => write!(f, "r4"),
+            Self::R5 => write!(f, "r5"),
+            Self::R6 => write!(f, "r6"),
+            Self::R7 => write!(f, "r7"),
+            Self::R8 => write!(f, "r8"),
+            Self::R9 => write!(f, "r9"),
+            Self::R10 => write!(f, "r10"),
+            Self::R11 => write!(f, "r11"),
+            Self::R12 => write!(f, "r12"),
+            Self::R13 => write!(f, "r13"),
+            Self::R14 => write!(f, "r14"),
+            Self::R15 => write!(f, "r15"),
+        }
+    }
+}
 
-            Reg::S0 => write!(f, "s0"),
-            Reg::S1 => write!(f, "s1"),
-            Reg::S2 => write!(f, "s2"),
-            Reg::S3 => write!(f, "s3"),
-            Reg::S4 => write!(f, "s4"),
-            Reg::S5 => write!(f, "s5"),
-            Reg::S6 => write!(f, "s6"),
-            Reg::S7 => write!(f, "s7"),
-            Reg::S8 => write!(f, "s8"),
-            Reg::S9 => write!(f, "s9"),
-            Reg::S10 => write!(f, "s10"),
-            Reg::S11 => write!(f, "s11"),
-            Reg::S12 => write!(f, "s12"),
-            Reg::S13 => write!(f, "s13"),
-            Reg::S14 => write!(f, "s14"),
-            Reg::S15 => write!(f, "s15"),
+impl Display for FPR {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match self {
+            Self::S0 => write!(f, "s0"),
+            Self::S1 => write!(f, "s1"),
+            Self::S2 => write!(f, "s2"),
+            Self::S3 => write!(f, "s3"),
+            Self::S4 => write!(f, "s4"),
+            Self::S5 => write!(f, "s5"),
+            Self::S6 => write!(f, "s6"),
+            Self::S7 => write!(f, "s7"),
+            Self::S8 => write!(f, "s8"),
+            Self::S9 => write!(f, "s9"),
+            Self::S10 => write!(f, "s10"),
+            Self::S11 => write!(f, "s11"),
+            Self::S12 => write!(f, "s12"),
+            Self::S13 => write!(f, "s13"),
+            Self::S14 => write!(f, "s14"),
+            Self::S15 => write!(f, "s15"),
+
+            Self::S16 => write!(f, "s16"),
+            Self::S17 => write!(f, "s17"),
+            Self::S18 => write!(f, "s18"),
+            Self::S19 => write!(f, "s19"),
+            Self::S20 => write!(f, "s20"),
+            Self::S21 => write!(f, "s21"),
+            Self::S22 => write!(f, "s22"),
+            Self::S23 => write!(f, "s23"),
+            Self::S24 => write!(f, "s24"),
+            Self::S25 => write!(f, "s25"),
+            Self::S26 => write!(f, "s26"),
+            Self::S27 => write!(f, "s27"),
+            Self::S28 => write!(f, "s28"),
+            Self::S29 => write!(f, "s29"),
+            Self::S30 => write!(f, "s30"),
+            Self::S31 => write!(f, "s31"),
         }
     }
 }
@@ -187,8 +229,8 @@ impl ARMTrait for ARM {
 impl Display for Inst {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
-            Self::Lw(rd, rs) => write!(f, "ldr {rd}, [{rs}]"),
-            Self::Sw(rs_1, rs_2) => write!(f, "str {rs_1}, [{rs_2}]"),
+            Self::Ldr(rd, rs) => write!(f, "ldr {rd}, [{rs}]"),
+            Self::Sdr(rs_1, rs_2) => write!(f, "str {rs_1}, [{rs_2}]"),
 
             Self::Add(rd, rs_1, rs_2) => write!(f, "add {rd}, {rs_1}, {rs_2}"),
             Self::Sub(rd, rs_1, rs_2) => write!(f, "sub {rd}, {rs_1}, {rs_2}"),
@@ -196,27 +238,16 @@ impl Display for Inst {
             Self::Mul(rd, rs_1, rs_2) => write!(f, "mul {rd}, {rs_1}, {rs_2}"),
             Self::Sdiv(rd, rs_1, rs_2) => write!(f, "sdiv {rd}, {rs_1}, {rs_2}"),
 
-            Self::Push(list) => {
-                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
-                write!(f, "push {{{}}}", data.as_slice().join(", "))
-            }
-            Self::Pop(list) => {
-                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
-                write!(f, "pop {{{}}}", data.as_slice().join(", "))
-            }
-            Self::VPush(list) => {
-                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
-                write!(f, "vpush {{{}}}", data.as_slice().join(", "))
-            }
-            Self::VPop(list) => {
-                let data: Vec<_> = list.iter().map(|reg| format!("{reg}")).collect();
-                write!(f, "vpop {{{}}}", data.as_slice().join(", "))
-            }
+            Self::Push(reg) => write!(f, "push {{{reg}}}"),
+            Self::Pop(reg) => write!(f, "pop {{{reg}}}"),
+            Self::VPush(reg) => write!(f, "vpush {{{reg}}}"),
+            Self::VPop(reg) => write!(f, "vpop {{{reg}}}"),
+
             Self::Blx(reg) => write!(f, "blx {reg}"),
             Self::Bx(reg) => write!(f, "bx {reg}"),
-            Self::Ldr(reg, imm) => write!(f, "ldr {reg}, #{imm}"),
-            Self::La(reg, label) => write!(f, "ldr {reg}, {label}"),
-            Self::Mv(rd, rs) => write!(f, "mov {rd}, {rs}"),
+            Self::Mov32(reg, imm) => write!(f, "mov32 {reg}, {}", *imm as u32),
+            Self::Mov32Label(reg, label) => write!(f, "mov32 {reg}, {label}"),
+            Self::Mov(rd, rs) => write!(f, "mov {rd}, {rs}"),
 
             Self::VAddF32(rd, rs_1, rs_2) => write!(f, "vadd.f32 {rd}, {rs_1}, {rs_2}"),
             Self::VSubF32(rd, rs_1, rs_2) => write!(f, "vsub.f32 {rd}, {rs_1}, {rs_2}"),
@@ -232,21 +263,21 @@ impl Display for Inst {
             Self::Cmp(rd, rs) => write!(f, "cmp {rd}, {rs}"),
             Self::VCmpF32(rd, rs) => write!(f, "vcmp.f32 {rd}, {rs}"),
 
-            Self::Load1Eq(reg) => write!(f, "moveq {reg}, #1"),
-            Self::Load1Ne(reg) => write!(f, "movne {reg}, #1"),
-            Self::Load1Ge(reg) => write!(f, "movge {reg}, #1"),
-            Self::Load1Gt(reg) => write!(f, "movgt {reg}, #1"),
-            Self::Load1Le(reg) => write!(f, "movle {reg}, #1"),
-            Self::Load1Lt(reg) => write!(f, "movlt {reg}, #1"),
+            Self::MovImm(reg, imm) => write!(f, "mov {reg}, #{imm}"),
+            Self::MovImmEq(reg, imm) => write!(f, "moveq {reg}, #{imm}"),
+            Self::MovImmNe(reg, imm) => write!(f, "movne {reg}, #{imm}"),
+            Self::MovImmGe(reg, imm) => write!(f, "movge {reg}, #{imm}"),
+            Self::MovImmGt(reg, imm) => write!(f, "movgt {reg}, #{imm}"),
+            Self::MovImmLe(reg, imm) => write!(f, "movle {reg}, #{imm}"),
+            Self::MovImmLt(reg, imm) => write!(f, "movlt {reg}, #{imm}"),
 
-            Self::VEor(rd, rs_1, rs_2) => write!(f, "veor.f32 {rd}, {rs_1}, {rs_2}"),
-
-            Self::VLoad1Eq(reg) => write!(f, "vldreq.f32 {reg}, #1"),
-            Self::VLoad1Ne(reg) => write!(f, "vldrne.f32 {reg}, #1"),
-            Self::VLoad1Ge(reg) => write!(f, "vldrge.f32 {reg}, #1"),
-            Self::VLoad1Gt(reg) => write!(f, "vldrgt.f32 {reg}, #1"),
-            Self::VLoad1Le(reg) => write!(f, "vldrle.f32 {reg}, #1"),
-            Self::VLoad1Lt(reg) => write!(f, "vldrlt.f32 {reg}, #1"),
+            Self::VMov(rd, rs) => write!(f, "vmov {rd}, {rs}"),
+            Self::VMovEq(rd, rs) => write!(f, "vmoveq {rd}, {rs}"),
+            Self::VMovNe(rd, rs) => write!(f, "vmovne {rd}, {rs}"),
+            Self::VMovGe(rd, rs) => write!(f, "vmovge {rd}, {rs}"),
+            Self::VMovGt(rd, rs) => write!(f, "vmovgt {rd}, {rs}"),
+            Self::VMovLe(rd, rs) => write!(f, "vmovle {rd}, {rs}"),
+            Self::VMovLt(rd, rs) => write!(f, "vmovlt {rd}, {rs}"),
         }
     }
 }
@@ -257,7 +288,7 @@ impl Display for Directive {
             Self::Text => write!(f, ".text"),
             Self::Global(label) => write!(f, ".global {label}"),
             Self::Data => write!(f, ".data"),
-            Self::Zero(len) => write!(f, ".zero {len}"),
+            Self::Zero(len) => write!(f, ".zero {}", len * 4),
             Self::Word(nums) => {
                 let data: Vec<_> = nums.iter().map(u32::to_string).collect();
                 write!(f, ".word {}", data.as_slice().join(", "))

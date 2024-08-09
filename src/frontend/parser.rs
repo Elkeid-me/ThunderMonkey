@@ -564,13 +564,13 @@ impl ASTBuilder {
         let is_entry = matches!(id.as_str(), "main");
         let handler = match iter.next() {
             Some(i) => {
+                self.insert_definition(id.clone(), Function(Box::new(ret_type.clone()), para_type.clone()), None)?;
                 self.enter_scope();
                 let arg_handlers = para_type
                     .iter()
                     .zip(para_id.iter())
                     .map(|(ty, id)| self.insert_definition(id.clone(), ty.clone(), None))
                     .collect::<Result<Vec<_>, _>>()?;
-                self.insert_definition(id.clone(), Function(Box::new(ret_type.clone()), para_type.clone()), None)?;
                 let block = self.parse_block(i, false, &ret_type)?;
                 self.exit_scope();
                 self.insert_definition(

@@ -21,6 +21,7 @@ mod frontend;
 mod preprocessor;
 
 use arg_parse::{Mode, ParsedArgs};
+use backend::chollima::IR;
 use preprocessor::preprocess;
 use std::fs::{read_to_string, File};
 use std::io::Write;
@@ -45,12 +46,29 @@ fn compile() -> Result<(), Box<dyn std::error::Error>> {
     let code = preprocess(read_to_string(input)?);
     // let code = read_to_string(input)?;
     let ir = frontend::generator_ir(&code)?;
+    let IR { symbol_table, ir: i } = &ir;
+    println!("{:#?}", symbol_table);
+
+    for (handler, def) in i {
+        match def {
+            backend::chollima::GlobalItem::Variable { words, init } => (),
+            backend::chollima::GlobalItem::Function { code, context, arg_handlers } => {
+                println!("{handler}");
+                for i in code {
+                    println!("    {i}");
+                }
+            },
+        }
+    }
+
     let asm = backend::hyoksin::asm_generate(ir);
     let mut f = File::create(output)?;
     match mode {
         Mode::Debug => println!("使用调试模式"),
         Mode::Optimization => println!("使用优化模式"),
     }
+
+    write!(f, ".macro mov32, reg, val\n    movw \\reg, #:lower16:\\val\n    movt \\reg, #:upper16:\\val\n.endm\n")?;
 
     for i in asm {
         write!(f, "{i}")?;

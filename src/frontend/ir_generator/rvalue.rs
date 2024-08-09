@@ -226,10 +226,10 @@ impl Generator {
                 ]);
 
                 ir
-            },
+            }
             LogicNot(expr) => self.expr_rvalue(
                 &Expr {
-                    inner: Neq(
+                    inner: Eq(
                         expr.clone(),
                         Box::new(Expr {
                             inner: Integer(0),
@@ -269,7 +269,7 @@ impl Generator {
                     (Type::Float, OpType::Float) => {
                         let mut ir = VecDeque::from([IRItem::PushFloat(0.0)]);
                         ir.extend(self.expr_rvalue(expr, OpType::Float));
-                        ir.push_back(IRItem::SubInt);
+                        ir.push_back(IRItem::SubFloat);
                         ir
                     }
                     _ => unreachable!(),
@@ -341,6 +341,7 @@ impl Generator {
                 let mut ir: VecDeque<_> = args
                     .into_iter()
                     .zip(arg_tys)
+                    .rev()
                     .flat_map(|(expr, ty)| {
                         let expected_ty = match ty {
                             Type::Int | Type::Pointer(_, _) => OpType::Int,
