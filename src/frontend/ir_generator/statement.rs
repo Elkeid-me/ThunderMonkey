@@ -27,7 +27,7 @@ impl Generator {
         let (block_ir, block_label) = self.block(block, while_label, while_next_label, ret_ty);
         let mut ir = VecDeque::from([IRItem::Jmp { label: while_label }, IRItem::Label { addr: while_label }]);
         ir.extend(self.expr_rvalue(cond, OpType::Int));
-        ir.extend([IRItem::Br { then: block_label, or_else: while_next_label }]);
+        ir.extend([IRItem::Br { then: block_label, or_else: while_next_label }, IRItem::Label { addr: block_label }]);
         ir.extend(block_ir);
         ir.extend([IRItem::Jmp { label: while_label }, IRItem::Label { addr: while_next_label }]);
         ir
