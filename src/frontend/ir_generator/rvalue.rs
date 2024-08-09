@@ -269,7 +269,7 @@ impl Generator {
                     (Type::Float, OpType::Float) => {
                         let mut ir = VecDeque::from([IRItem::PushFloat(0.0)]);
                         ir.extend(self.expr_rvalue(expr, OpType::Float));
-                        ir.push_back(IRItem::SubInt);
+                        ir.push_back(IRItem::SubFloat);
                         ir
                     }
                     _ => unreachable!(),
