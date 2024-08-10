@@ -20,59 +20,59 @@ use std::fmt::{Display, Formatter, Result};
 
 #[derive(Clone)]
 pub enum Inst {
-    Push(Reg),
-    Pop(Reg),
-    VPush(Reg),
-    VPop(Reg),
-    VEor(Reg, Reg, Reg),
+    Push(GPR),
+    Pop(GPR),
+    VPush(FPR),
+    VPop(FPR),
+    VEor(FPR, FPR, FPR),
 
-    Blx(Reg),
-    Bx(Reg),
+    Blx(GPR),
+    Bx(GPR),
 
-    BxNe(Reg),
-    Cmp(Reg, Reg),
-    VCmpF32(Reg, Reg),
+    BxNe(GPR),
+    Cmp(GPR, GPR),
+    VCmpF32(FPR, FPR),
 
-    Ldr(Reg, Reg),
-    Sdr(Reg, Reg),
-    Mov32(Reg, i32),
-    Mov32Label(Reg, String),
-    Mov(Reg, Reg),
+    Ldr(GPR, GPR),
+    Sdr(GPR, GPR),
+    Mov32(GPR, i32),
+    Mov32Label(GPR, String),
+    Mov(GPR, GPR),
 
-    Load1Eq(Reg),
-    Load1Ne(Reg),
-    Load1Ge(Reg),
-    Load1Gt(Reg),
-    Load1Le(Reg),
-    Load1Lt(Reg),
+    Load1Eq(GPR),
+    Load1Ne(GPR),
+    Load1Ge(GPR),
+    Load1Gt(GPR),
+    Load1Le(GPR),
+    Load1Lt(GPR),
 
-    VLdr1Eq(Reg),
-    VLdr1Ne(Reg),
-    VLdr1Ge(Reg),
-    VLdr1Gt(Reg),
-    VLdr1Le(Reg),
-    VLdr1Lt(Reg),
+    VLdr1Eq(FPR),
+    VLdr1Ne(FPR),
+    VLdr1Ge(FPR),
+    VLdr1Gt(FPR),
+    VLdr1Le(FPR),
+    VLdr1Lt(FPR),
 
-    Add(Reg, Reg, Reg),
-    Sub(Reg, Reg, Reg),
-    Mul(Reg, Reg, Reg),
-    Sdiv(Reg, Reg, Reg),
+    Add(GPR, GPR, GPR),
+    Sub(GPR, GPR, GPR),
+    Mul(GPR, GPR, GPR),
+    Sdiv(GPR, GPR, GPR),
 
-    VAddF32(Reg, Reg, Reg),
-    VSubF32(Reg, Reg, Reg),
-    VMulF32(Reg, Reg, Reg),
-    VDivF32(Reg, Reg, Reg),
+    VAddF32(FPR, FPR, FPR),
+    VSubF32(FPR, FPR, FPR),
+    VMulF32(FPR, FPR, FPR),
+    VDivF32(FPR, FPR, FPR),
 
-    Eor(Reg, Reg, Reg),
-    Orr(Reg, Reg, Reg),
-    And(Reg, Reg, Reg),
-    Lsl(Reg, Reg, Reg),
-    Lsr(Reg, Reg, Reg),
-    Asr(Reg, Reg, Reg),
+    Eor(GPR, GPR, GPR),
+    Orr(GPR, GPR, GPR),
+    And(GPR, GPR, GPR),
+    Lsl(GPR, GPR, GPR),
+    Lsr(GPR, GPR, GPR),
+    Asr(GPR, GPR, GPR),
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum Reg {
+pub enum GPR {
     R0,
     R1,
     R2,
@@ -89,7 +89,9 @@ pub enum Reg {
     R13, // SP
     R14, // LR
     R15, // PC
-
+}
+#[derive(Clone, Copy, PartialEq)]
+pub enum FPR {
     S0,
     S1,
     S2,
@@ -126,42 +128,48 @@ pub enum ARMItem {
 
 pub type ARM = Vec<ARMItem>;
 
-impl Display for Reg {
+impl Display for GPR {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
-            Reg::R0 => write!(f, "r0"),
-            Reg::R1 => write!(f, "r1"),
-            Reg::R2 => write!(f, "r2"),
-            Reg::R3 => write!(f, "r3"),
-            Reg::R4 => write!(f, "r4"),
-            Reg::R5 => write!(f, "r5"),
-            Reg::R6 => write!(f, "r6"),
-            Reg::R7 => write!(f, "r7"),
-            Reg::R8 => write!(f, "r8"),
-            Reg::R9 => write!(f, "r9"),
-            Reg::R10 => write!(f, "r10"),
-            Reg::R11 => write!(f, "r11"),
-            Reg::R12 => write!(f, "r12"),
-            Reg::R13 => write!(f, "r13"),
-            Reg::R14 => write!(f, "r14"),
-            Reg::R15 => write!(f, "r15"),
+            Self::R0 => write!(f, "r0"),
+            Self::R1 => write!(f, "r1"),
+            Self::R2 => write!(f, "r2"),
+            Self::R3 => write!(f, "r3"),
+            Self::R4 => write!(f, "r4"),
+            Self::R5 => write!(f, "r5"),
+            Self::R6 => write!(f, "r6"),
+            Self::R7 => write!(f, "r7"),
+            Self::R8 => write!(f, "r8"),
+            Self::R9 => write!(f, "r9"),
+            Self::R10 => write!(f, "r10"),
+            Self::R11 => write!(f, "r11"),
+            Self::R12 => write!(f, "r12"),
+            Self::R13 => write!(f, "r13"),
+            Self::R14 => write!(f, "r14"),
+            Self::R15 => write!(f, "r15"),
+        }
+    }
+}
 
-            Reg::S0 => write!(f, "s0"),
-            Reg::S1 => write!(f, "s1"),
-            Reg::S2 => write!(f, "s2"),
-            Reg::S3 => write!(f, "s3"),
-            Reg::S4 => write!(f, "s4"),
-            Reg::S5 => write!(f, "s5"),
-            Reg::S6 => write!(f, "s6"),
-            Reg::S7 => write!(f, "s7"),
-            Reg::S8 => write!(f, "s8"),
-            Reg::S9 => write!(f, "s9"),
-            Reg::S10 => write!(f, "s10"),
-            Reg::S11 => write!(f, "s11"),
-            Reg::S12 => write!(f, "s12"),
-            Reg::S13 => write!(f, "s13"),
-            Reg::S14 => write!(f, "s14"),
-            Reg::S15 => write!(f, "s15"),
+impl Display for FPR {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match self {
+            Self::S0 => write!(f, "s0"),
+            Self::S1 => write!(f, "s1"),
+            Self::S2 => write!(f, "s2"),
+            Self::S3 => write!(f, "s3"),
+            Self::S4 => write!(f, "s4"),
+            Self::S5 => write!(f, "s5"),
+            Self::S6 => write!(f, "s6"),
+            Self::S7 => write!(f, "s7"),
+            Self::S8 => write!(f, "s8"),
+            Self::S9 => write!(f, "s9"),
+            Self::S10 => write!(f, "s10"),
+            Self::S11 => write!(f, "s11"),
+            Self::S12 => write!(f, "s12"),
+            Self::S13 => write!(f, "s13"),
+            Self::S14 => write!(f, "s14"),
+            Self::S15 => write!(f, "s15"),
         }
     }
 }

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::armv7::{Inst::*, Reg::*, *};
+use super::armv7::{Inst::*, FPR::*, GPR::*, *};
 use super::chollima::*;
 use crate::frontend::ast::Definition;
 use crate::{Handler, HashMap};

@@ -45,6 +45,7 @@ fn compile() -> Result<(), Box<dyn std::error::Error>> {
     let code = preprocess(read_to_string(input)?);
     // let code = read_to_string(input)?;
     let ir = frontend::generator_ir(&code)?;
+    // println!("{:#?}", ir.symbol_table);
     let asm = backend::hyoksin::asm_generate(ir);
     let mut f = File::create(output)?;
     match mode {
