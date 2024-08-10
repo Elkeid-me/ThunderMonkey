@@ -229,7 +229,7 @@ impl Generator {
             },
             LogicNot(expr) => self.expr_rvalue(
                 &Expr {
-                    inner: Neq(
+                    inner: Eq(
                         expr.clone(),
                         Box::new(Expr {
                             inner: Integer(0),
