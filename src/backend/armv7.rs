@@ -30,7 +30,6 @@ pub enum Inst {
 
     BxNe(GPR),
     Cmp(GPR, GPR),
-    VCmpF32(FPR, FPR),
 
     Ldr(GPR, GPR),
     Sdr(GPR, GPR),
@@ -46,14 +45,6 @@ pub enum Inst {
     MovImmLe(GPR, i32),
     MovImmLt(GPR, i32),
 
-    VMov(FPR, GPR),
-    VMovEq(FPR, GPR),
-    VMovNe(FPR, GPR),
-    VMovGe(FPR, GPR),
-    VMovGt(FPR, GPR),
-    VMovLe(FPR, GPR),
-    VMovLt(FPR, GPR),
-
     Add(GPR, GPR, GPR),
     Sub(GPR, GPR, GPR),
     Mul(GPR, GPR, GPR),
@@ -65,6 +56,7 @@ pub enum Inst {
     VDivF32(FPR, FPR, FPR),
 
     Eor(GPR, GPR, GPR),
+    EorImm(GPR, GPR, i32),
     Orr(GPR, GPR, GPR),
     And(GPR, GPR, GPR),
     Lsl(GPR, GPR, GPR),
@@ -253,7 +245,9 @@ impl Display for Inst {
             Self::VSubF32(rd, rs_1, rs_2) => write!(f, "vsub.f32 {rd}, {rs_1}, {rs_2}"),
             Self::VMulF32(rd, rs_1, rs_2) => write!(f, "vmul.f32 {rd}, {rs_1}, {rs_2}"),
             Self::VDivF32(rd, rs_1, rs_2) => write!(f, "vdiv.f32 {rd}, {rs_1}, {rs_2}"),
+
             Self::Eor(rd, rs_1, rs_2) => write!(f, "eor {rd}, {rs_1}, {rs_2}"),
+            Self::EorImm(rd, rs, imm) => write!(f, "eor {rd}, {rs}, #{imm}"),
             Self::Orr(rd, rs_1, rs_2) => write!(f, "orr {rd}, {rs_1}, {rs_2}"),
             Self::And(rd, rs_1, rs_2) => write!(f, "and {rd}, {rs_1}, {rs_2}"),
             Self::Lsl(rd, rs_1, rs_2) => write!(f, "lsl {rd}, {rs_1}, {rs_2}"),
@@ -261,7 +255,6 @@ impl Display for Inst {
             Self::Asr(rd, rs_1, rs_2) => write!(f, "asr {rd}, {rs_1}, {rs_2}"),
             Self::BxNe(reg) => write!(f, "bxne {reg}"),
             Self::Cmp(rd, rs) => write!(f, "cmp {rd}, {rs}"),
-            Self::VCmpF32(rd, rs) => write!(f, "vcmp.f32 {rd}, {rs}"),
 
             Self::MovImm(reg, imm) => write!(f, "mov {reg}, #{imm}"),
             Self::MovImmEq(reg, imm) => write!(f, "moveq {reg}, #{imm}"),
@@ -270,14 +263,6 @@ impl Display for Inst {
             Self::MovImmGt(reg, imm) => write!(f, "movgt {reg}, #{imm}"),
             Self::MovImmLe(reg, imm) => write!(f, "movle {reg}, #{imm}"),
             Self::MovImmLt(reg, imm) => write!(f, "movlt {reg}, #{imm}"),
-
-            Self::VMov(rd, rs) => write!(f, "vmov {rd}, {rs}"),
-            Self::VMovEq(rd, rs) => write!(f, "vmoveq {rd}, {rs}"),
-            Self::VMovNe(rd, rs) => write!(f, "vmovne {rd}, {rs}"),
-            Self::VMovGe(rd, rs) => write!(f, "vmovge {rd}, {rs}"),
-            Self::VMovGt(rd, rs) => write!(f, "vmovgt {rd}, {rs}"),
-            Self::VMovLe(rd, rs) => write!(f, "vmovle {rd}, {rs}"),
-            Self::VMovLt(rd, rs) => write!(f, "vmovlt {rd}, {rs}"),
         }
     }
 }

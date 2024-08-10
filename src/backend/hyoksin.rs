@@ -220,64 +220,47 @@ fn function(
             }
 
             IRItem::EqFloat => {
-                asm.add_inst(MovImm(R0, 0));
-                asm.add_inst(VMov(S2, R0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
-                asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(MovImm(R0, 1));
-                asm.add_inst(VMovEq(S2, R0));
-                asm.add_inst(VPush(S2));
+                asm.add_inst(Mov32Label(R0, "__aeabi_fcmpeq".to_string()));
+                asm.add_inst(Blx(R0));
+                asm.add_inst(Push(R0));
             }
             IRItem::NeFloat => {
-                asm.add_inst(MovImm(R0, 0));
-                asm.add_inst(VMov(S2, R0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
-                asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(MovImm(R0, 1));
-                asm.add_inst(VMovNe(S2, R0));
-                asm.add_inst(VPush(S2));
+                asm.add_inst(Mov32Label(R0, "__aeabi_fcmpeq".to_string()));
+                asm.add_inst(Blx(R0));
+                asm.add_inst(EorImm(R0, R0, 1));
+                asm.add_inst(Push(R0));
             }
             IRItem::LeFloat => {
-                asm.add_inst(MovImm(R0, 0));
-                asm.add_inst(VMov(S2, R0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
-                asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(MovImm(R0, 1));
-                asm.add_inst(VMovLe(S2, R0));
-                asm.add_inst(VPush(S2));
+                asm.add_inst(Mov32Label(R0, "__aeabi_fcmple".to_string()));
+                asm.add_inst(Blx(R0));
+                asm.add_inst(Push(R0));
             }
             IRItem::LtFloat => {
-                asm.add_inst(MovImm(R0, 0));
-                asm.add_inst(VMov(S2, R0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
-                asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(MovImm(R0, 1));
-                asm.add_inst(VMovLt(S2, R0));
-                asm.add_inst(VPush(S2));
+                asm.add_inst(Mov32Label(R0, "__aeabi_fcmplt".to_string()));
+                asm.add_inst(Blx(R0));
+                asm.add_inst(Push(R0));
             }
             IRItem::GeFloat => {
-                asm.add_inst(MovImm(R0, 0));
-                asm.add_inst(VMov(S2, R0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
-                asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(MovImm(R0, 1));
-                asm.add_inst(VMovGe(S2, R0));
-                asm.add_inst(VPush(S2));
+                asm.add_inst(Mov32Label(R0, "__aeabi_fcmpge".to_string()));
+                asm.add_inst(Blx(R0));
+                asm.add_inst(Push(R0));
             }
             IRItem::GtFloat => {
-                asm.add_inst(MovImm(R0, 0));
-                asm.add_inst(VMov(S2, R0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
-                asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(MovImm(R0, 1));
-                asm.add_inst(VMovGt(S2, R0));
-                asm.add_inst(VPush(S2));
+                asm.add_inst(Mov32Label(R0, "__aeabi_fcmpgt".to_string()));
+                asm.add_inst(Blx(R0));
+                asm.add_inst(Push(R0));
             }
 
             IRItem::PushFloat(f) => {
