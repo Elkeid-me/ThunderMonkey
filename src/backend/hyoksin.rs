@@ -290,10 +290,10 @@ fn function(
                 asm.add_inst(Pop(R0));
                 asm.add_inst(Mov32Label(R1, "__aeabi_i2f".to_string()));
                 asm.add_inst(Blx(R1));
-                asm.add_inst(VPush(S0));
+                asm.add_inst(Push(R0));
             }
             IRItem::CvtFI => {
-                asm.add_inst(VPop(S0));
+                asm.add_inst(Pop(R0));
                 asm.add_inst(Mov32Label(R1, "__aeabi_f2iz".to_string()));
                 asm.add_inst(Blx(R1));
                 asm.add_inst(Push(R0));
