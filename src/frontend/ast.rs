@@ -123,6 +123,9 @@ pub enum ExprInner {
     ShLAssign(Box<Expr>, Box<Expr>),
     SaRAssign(Box<Expr>, Box<Expr>),
 
+    StartTime(i32),
+    StopTime(i32),
+
     Integer(i32),
     Floating(f32),
     Var(Handler),

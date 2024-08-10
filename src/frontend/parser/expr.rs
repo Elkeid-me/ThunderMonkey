@@ -20,9 +20,9 @@ use crate::frontend::ast::{ExprCategory::*, ExprInner::*, *};
 use crate::frontend::parser::{ASTBuilder, Rule};
 use crate::frontend::ty::Type::{self, *};
 use crate::Handler;
+use core::ptr::null_mut;
 use libc::strtof;
 use pest::iterators::Pair;
-use core::ptr::null_mut;
 
 fn parse_integer(expr: Pair<Rule>) -> Result<Expr, CompilerError> {
     match expr.as_rule() {
@@ -340,32 +340,42 @@ impl ASTBuilder {
                 let line_col = expr.line_col();
                 let mut iter = expr.into_inner();
                 let id = iter.next().unwrap().as_str();
-                match self.search(id) {
-                    Some(handler) => match self.symbol_table.get(&handler).unwrap() {
-                        Definition { init: _, ty: Function(ret_ty, arg_tys), .. } => {
-                            let args = iter.map(|p| self.parse_expr(p)).collect::<Result<Vec<_>, _>>()?;
-                            if arg_tys.len() != args.len() {
-                                Err(CompilerError { error_number: IncompatibleType(todo!(), todo!()), line_col })
-                            } else {
-                                for (arg, expected_ty) in args.iter().zip(arg_tys) {
-                                    if !arg.ty.convertible(expected_ty) {
-                                        return Err(CompilerError {
-                                            error_number: IncompatibleType(arg.ty.clone(), vec![expected_ty.clone()]),
-                                            line_col,
-                                        });
+                match id {
+                    "starttime" => {
+                        Ok(Expr { inner: StartTime(line_col.0 as i32), ty: Void, category: RValue, is_const: false })
+                    }
+                    "stoptime" => {
+                        Ok(Expr { inner: StopTime(line_col.0 as i32), ty: Void, category: RValue, is_const: false })
+                    }
+                    _ => match self.search(id) {
+                        Some(handler) => match self.symbol_table.get(&handler).unwrap() {
+                            Definition { init: _, ty: Function(ret_ty, arg_tys), .. } => {
+                                let args = iter.map(|p| self.parse_expr(p)).collect::<Result<Vec<_>, _>>()?;
+                                if arg_tys.len() != args.len() {
+                                    Err(CompilerError { error_number: IncompatibleType(todo!(), todo!()), line_col })
+                                } else {
+                                    for (arg, expected_ty) in args.iter().zip(arg_tys) {
+                                        if !arg.ty.convertible(expected_ty) {
+                                            return Err(CompilerError {
+                                                error_number: IncompatibleType(arg.ty.clone(), vec![expected_ty.clone()]),
+                                                line_col,
+                                            });
+                                        }
                                     }
+                                    Ok(Expr {
+                                        inner: Func(handler, args),
+                                        ty: ret_ty.as_ref().clone(),
+                                        category: RValue,
+                                        is_const: false,
+                                    })
                                 }
-                                Ok(Expr {
-                                    inner: Func(handler, args),
-                                    ty: ret_ty.as_ref().clone(),
-                                    category: RValue,
-                                    is_const: false,
-                                })
                             }
-                        }
-                        Definition { .. } => Err(CompilerError { error_number: IncompatibleType(todo!(), todo!()), line_col }),
+                            Definition { .. } => {
+                                Err(CompilerError { error_number: IncompatibleType(todo!(), todo!()), line_col })
+                            }
+                        },
+                        None => Err(CompilerError { error_number: Undefined, line_col }),
                     },
-                    None => Err(CompilerError { error_number: Undefined, line_col }),
                 }
             }
             Rule::array_element => {
@@ -376,7 +386,7 @@ impl ASTBuilder {
                     iter.next().unwrap().into_inner().map(|p| self.parse_expr(p)).collect::<Result<Vec<_>, _>>()?;
                 match self.search(id) {
                     Some(handler) => match self.symbol_table.get(&handler).unwrap() {
-                        Definition { init: Some(Init::ConstList(list)), ty: Array(base, lens), .. } => {
+                        Definition { init: Some(Init::ConstList(_)), ty: Array(base, lens), .. } => {
                             self.check_pointer(subscripts, handler, base, &lens[1..])
                         }
                         Definition { init: _, ty: Pointer(base, lens), .. } => {
@@ -399,7 +409,13 @@ impl ASTBuilder {
     }
 
     // len 是指针长度
-    fn check_pointer(&self, subscripts: Vec<Expr>, handler: Handler, base: &Type, lens: &[usize]) -> Result<Expr, CompilerError> {
+    fn check_pointer(
+        &self,
+        subscripts: Vec<Expr>,
+        handler: Handler,
+        base: &Type,
+        lens: &[usize],
+    ) -> Result<Expr, CompilerError> {
         for expr in subscripts.iter() {
             if !matches!(expr.ty, Int) {
                 return Err(CompilerError { error_number: IncompatibleType(expr.ty.clone(), vec![Int]), line_col: (0, 0) });

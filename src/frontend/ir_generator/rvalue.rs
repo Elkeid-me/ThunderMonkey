@@ -381,6 +381,8 @@ impl Generator {
 
                 ir
             }
+            StartTime(lineno) => VecDeque::from([IRItem::StartTime { lineno: *lineno }]),
+            StopTime(lineno) => VecDeque::from([IRItem::StopTime { lineno: *lineno }]),
         }
     }
 }
