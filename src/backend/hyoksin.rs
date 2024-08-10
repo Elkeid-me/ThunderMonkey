@@ -230,8 +230,8 @@ fn function(
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(Mov32Label(R0, "__aeabi_fcmpeq".to_string()));
-                asm.add_inst(EorImm(R0, R0, 1));
                 asm.add_inst(Blx(R0));
+                asm.add_inst(EorImm(R0, R0, 1));
                 asm.add_inst(Push(R0));
             }
             IRItem::LeFloat => {
