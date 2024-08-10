@@ -46,13 +46,13 @@ pub enum Inst {
     MovImmLe(GPR, i32),
     MovImmLt(GPR, i32),
 
-    VMovF32Imm(FPR, i32),
-    VMovF32ImmEq(FPR, i32),
-    VMovF32ImmNe(FPR, i32),
-    VMovF32ImmGe(FPR, i32),
-    VMovF32ImmGt(FPR, i32),
-    VMovF32ImmLe(FPR, i32),
-    VMovF32ImmLt(FPR, i32),
+    VMov(FPR, GPR),
+    VMovEq(FPR, GPR),
+    VMovNe(FPR, GPR),
+    VMovGe(FPR, GPR),
+    VMovGt(FPR, GPR),
+    VMovLe(FPR, GPR),
+    VMovLt(FPR, GPR),
 
     Add(GPR, GPR, GPR),
     Sub(GPR, GPR, GPR),
@@ -271,13 +271,13 @@ impl Display for Inst {
             Self::MovImmLe(reg, imm) => write!(f, "movle {reg}, #{imm}"),
             Self::MovImmLt(reg, imm) => write!(f, "movlt {reg}, #{imm}"),
 
-            Self::VMovF32Imm(reg, imm) => write!(f, "vmov.f32 {reg}, #{imm}"),
-            Self::VMovF32ImmEq(reg, imm) => write!(f, "vmoveq.f32 {reg}, #{imm}"),
-            Self::VMovF32ImmNe(reg, imm) => write!(f, "vmovne.f32 {reg}, #{imm}"),
-            Self::VMovF32ImmGe(reg, imm) => write!(f, "vmovge.f32 {reg}, #{imm}"),
-            Self::VMovF32ImmGt(reg, imm) => write!(f, "vmovgt.f32 {reg}, #{imm}"),
-            Self::VMovF32ImmLe(reg, imm) => write!(f, "vmovle.f32 {reg}, #{imm}"),
-            Self::VMovF32ImmLt(reg, imm) => write!(f, "vmovlt.f32 {reg}, #{imm}"),
+            Self::VMov(rd, rs) => write!(f, "vmov {rd}, {rs}"),
+            Self::VMovEq(rd, rs) => write!(f, "vmoveq {rd}, {rs}"),
+            Self::VMovNe(rd, rs) => write!(f, "vmovne {rd}, {rs}"),
+            Self::VMovGe(rd, rs) => write!(f, "vmovge {rd}, {rs}"),
+            Self::VMovGt(rd, rs) => write!(f, "vmovgt {rd}, {rs}"),
+            Self::VMovLe(rd, rs) => write!(f, "vmovle {rd}, {rs}"),
+            Self::VMovLt(rd, rs) => write!(f, "vmovlt {rd}, {rs}"),
         }
     }
 }
