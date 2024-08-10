@@ -49,11 +49,6 @@ pub enum Inst {
     Sub(GPR, GPR, GPR),
     Mul(GPR, GPR, GPR),
 
-    VAddF32(FPR, FPR, FPR),
-    VSubF32(FPR, FPR, FPR),
-    VMulF32(FPR, FPR, FPR),
-    VDivF32(FPR, FPR, FPR),
-
     Eor(GPR, GPR, GPR),
     EorImm(GPR, GPR, i32),
     Orr(GPR, GPR, GPR),
@@ -247,11 +242,6 @@ impl Display for Inst {
             Self::MovImmGt(reg, imm) => write!(f, "movgt {reg}, #{imm}"),
             Self::MovImmLe(reg, imm) => write!(f, "movle {reg}, #{imm}"),
             Self::MovImmLt(reg, imm) => write!(f, "movlt {reg}, #{imm}"),
-
-            Self::VAddF32(rd, rs_1, rs_2) => write!(f, "vadd.f32 {rd}, {rs_1}, {rs_2}"),
-            Self::VSubF32(rd, rs_1, rs_2) => write!(f, "vsub.f32 {rd}, {rs_1}, {rs_2}"),
-            Self::VMulF32(rd, rs_1, rs_2) => write!(f, "vmul.f32 {rd}, {rs_1}, {rs_2}"),
-            Self::VDivF32(rd, rs_1, rs_2) => write!(f, "vdiv.f32 {rd}, {rs_1}, {rs_2}"),
 
             Self::Eor(rd, rs_1, rs_2) => write!(f, "eor {rd}, {rs_1}, {rs_2}"),
             Self::EorImm(rd, rs, imm) => write!(f, "eor {rd}, {rs}, #{imm}"),
