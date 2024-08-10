@@ -64,7 +64,6 @@ fn parse_float(expr: Pair<Rule>) -> Result<Expr, CompilerError> {
     }
 }
 
-#[macro_export]
 macro_rules! arith_op_check {
     ($l: expr, $r: expr, $op_1: tt, $op_2: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
@@ -89,7 +88,6 @@ macro_rules! arith_op_check {
     }};
 }
 
-#[macro_export]
 macro_rules! logic_op_check {
     ($l: expr, $r: expr, $op_1: tt, $op_2: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
@@ -112,7 +110,6 @@ macro_rules! logic_op_check {
     }};
 }
 
-#[macro_export]
 macro_rules! int_op_check {
     ($l: expr, $r: expr, $op_1: tt, $op_2: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
@@ -132,7 +129,6 @@ macro_rules! int_op_check {
     }};
 }
 
-#[macro_export]
 macro_rules! rel_op_check {
     ($l: expr, $r: expr, $op_1: tt, $op_2: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
@@ -155,7 +151,6 @@ macro_rules! rel_op_check {
     }};
 }
 
-#[macro_export]
 macro_rules! assign_op_check {
     ($l: expr, $r: expr, $op: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
@@ -176,7 +171,6 @@ macro_rules! assign_op_check {
     }};
 }
 
-#[macro_export]
 macro_rules! int_assign_op_check {
     ($l: expr, $r: expr, $op: path, $line_col: expr) => {{
         let Expr { inner: l_inner, ty: l_ty, category: l_category, is_const: l_is_const } = $l?;
@@ -236,7 +230,6 @@ fn parse_infix(l: Result<Expr, CompilerError>, op: Pair<Rule>, r: Result<Expr, C
     }
 }
 
-#[macro_export]
 macro_rules! dec_inc_check {
     ($e: expr, $op: path, $result_category: expr, $line_col: expr) => {{
         let Expr { inner: expr_inner, ty: expr_ty, category, is_const } = $e?;

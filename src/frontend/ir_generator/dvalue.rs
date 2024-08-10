@@ -20,6 +20,38 @@ use crate::backend::chollima::{IRItem, OpType};
 use crate::frontend::{ast::Expr, ast::ExprInner::*, ty::Type};
 use std::collections::VecDeque;
 
+macro_rules! assign_helper {
+    ($generator: expr, $l: expr, $r: expr, $op: path) => {{
+        let mut ir = $generator.expr_lvalue($l);
+        ir.extend([IRItem::Double, IRItem::Load]);
+        let ty = match $l.ty {
+            Type::Int => OpType::Int,
+            Type::Float => OpType::Float,
+            _ => unreachable!(),
+        };
+        ir.extend($generator.expr_rvalue($r, ty));
+        ir.extend([$op, IRItem::Store]);
+        ir
+    }};
+    ($generator: expr, $l: expr, $r: expr, $op_1: path, $op_2: path) => {{
+        let mut ir = $generator.expr_lvalue($l);
+        ir.extend([IRItem::Double, IRItem::Load]);
+        let ty = match $l.ty {
+            Type::Int => OpType::Int,
+            Type::Float => OpType::Float,
+            _ => unreachable!(),
+        };
+        ir.extend($generator.expr_rvalue($r, ty));
+        match ty {
+            OpType::Int => ir.push_back($op_1),
+            OpType::Float => ir.push_back($op_2),
+            _ => unreachable!(),
+        }
+        ir.push_back(IRItem::Store);
+        ir
+    }};
+}
+
 impl Generator {
     pub fn expr_dvalue(&self, expr: &Expr) -> VecDeque<IRItem> {
         let Expr { inner, ty: _, category: _, is_const: _ } = expr;
@@ -60,16 +92,16 @@ impl Generator {
                 ir.push_back(IRItem::Store);
                 ir
             }
-            AddAssign(_, _) => todo!(),
-            SubAssign(_, _) => todo!(),
-            MulAssign(_, _) => todo!(),
-            DivAssign(_, _) => todo!(),
-            ModAssign(_, _) => todo!(),
-            AndAssign(_, _) => todo!(),
-            OrAssign(_, _) => todo!(),
-            XorAssign(_, _) => todo!(),
-            ShLAssign(_, _) => todo!(),
-            SaRAssign(_, _) => todo!(),
+            AddAssign(l, r) => assign_helper!(self, l, r, IRItem::AddInt, IRItem::AddFloat),
+            SubAssign(l, r) => assign_helper!(self, l, r, IRItem::SubInt, IRItem::SubFloat),
+            MulAssign(l, r) => assign_helper!(self, l, r, IRItem::MulInt, IRItem::MulFloat),
+            DivAssign(l, r) => assign_helper!(self, l, r, IRItem::DivInt, IRItem::DivFloat),
+            ModAssign(l, r) => assign_helper!(self, l, r, IRItem::Mod),
+            AndAssign(l, r) => assign_helper!(self, l, r, IRItem::And),
+            OrAssign(l, r) => assign_helper!(self, l, r, IRItem::Or),
+            XorAssign(l, r) => assign_helper!(self, l, r, IRItem::Xor),
+            ShLAssign(l, r) => assign_helper!(self, l, r, IRItem::Sll),
+            SaRAssign(l, r) => assign_helper!(self, l, r, IRItem::Sar),
             Integer(_) | Floating(_) | Var(_) => VecDeque::new(),
             Func(_, _) => self.expr_rvalue(expr, OpType::Void),
             ArrayElem(_, subscripts) => subscripts.into_iter().flat_map(|expr| self.expr_dvalue(expr)).collect(),

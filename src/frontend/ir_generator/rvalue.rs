@@ -20,7 +20,6 @@ use crate::frontend::{ast::Expr, ast::ExprInner::*, ty::Type};
 use crate::{backend::chollima::*, risk};
 use std::collections::VecDeque;
 
-#[macro_export]
 macro_rules! int_arith_helper {
     ($ir_generator: expr, $l: expr, $r: expr, $op: path, $expected_ty: expr) => {{
         let l_ty = &$l.ty;
@@ -43,7 +42,6 @@ macro_rules! int_arith_helper {
     }};
 }
 
-#[macro_export]
 macro_rules! cmp_helper {
     ($ir_generator: expr, $l: expr, $r: expr, $op_1: path, $op_2: path, $expected_ty: expr) => {{
         let l_ty = &$l.ty;
@@ -102,7 +100,6 @@ macro_rules! cmp_helper {
     }};
 }
 
-#[macro_export]
 macro_rules! arith_helper {
     ($ir_generator: expr, $l: expr, $r: expr, $op_1: path, $op_2: path, $expected_ty: expr) => {{
         let l_ty = &$l.ty;
@@ -158,6 +155,38 @@ macro_rules! arith_helper {
             }
             _ => unreachable!(),
         }
+    }};
+}
+
+macro_rules! assign_helper {
+    ($generator: expr, $l: expr, $r: expr, $op: path) => {{
+        let mut ir = $generator.expr_lvalue($l);
+        ir.extend([IRItem::Double, IRItem::Double, IRItem::Load]);
+        let ty = match $l.ty {
+            Type::Int => OpType::Int,
+            Type::Float => OpType::Float,
+            _ => unreachable!(),
+        };
+        ir.extend($generator.expr_rvalue($r, ty));
+        ir.extend([$op, IRItem::Store, IRItem::Load]);
+        ir
+    }};
+    ($generator: expr, $l: expr, $r: expr, $op_1: path, $op_2: path) => {{
+        let mut ir = $generator.expr_lvalue($l);
+        ir.extend([IRItem::Double, IRItem::Double, IRItem::Load]);
+        let ty = match $l.ty {
+            Type::Int => OpType::Int,
+            Type::Float => OpType::Float,
+            _ => unreachable!(),
+        };
+        ir.extend($generator.expr_rvalue($r, ty));
+        match ty {
+            OpType::Int => ir.push_back($op_1),
+            OpType::Float => ir.push_back($op_2),
+            _ => unreachable!(),
+        }
+        ir.extend([IRItem::Store, IRItem::Load]);
+        ir
     }};
 }
 
@@ -296,17 +325,28 @@ impl Generator {
             PostDec(_) => todo!(),
             PreInc(_) => todo!(),
             PreDec(_) => todo!(),
-            Assignment(_, _) => todo!(),
-            AddAssign(_, _) => todo!(),
-            SubAssign(_, _) => todo!(),
-            MulAssign(_, _) => todo!(),
-            DivAssign(_, _) => todo!(),
-            ModAssign(_, _) => todo!(),
-            AndAssign(_, _) => todo!(),
-            OrAssign(_, _) => todo!(),
-            XorAssign(_, _) => todo!(),
-            ShLAssign(_, _) => todo!(),
-            SaRAssign(_, _) => todo!(),
+            Assignment(l, r) => {
+                let mut ir = self.expr_lvalue(l);
+                ir.push_back(IRItem::Double);
+                let ty = match l.ty {
+                    Type::Int => OpType::Int,
+                    Type::Float => OpType::Float,
+                    _ => unreachable!(),
+                };
+                ir.extend(self.expr_rvalue(r, ty));
+                ir.extend([IRItem::Store, IRItem::Load]);
+                ir
+            },
+            AddAssign(l, r) => assign_helper!(self, l, r, IRItem::AddInt, IRItem::AddFloat),
+            SubAssign(l, r) => assign_helper!(self, l, r, IRItem::SubInt, IRItem::SubFloat),
+            MulAssign(l, r) => assign_helper!(self, l, r, IRItem::MulInt, IRItem::MulFloat),
+            DivAssign(l, r) => assign_helper!(self, l, r, IRItem::DivInt, IRItem::DivFloat),
+            ModAssign(l, r) => assign_helper!(self, l, r, IRItem::Mod),
+            AndAssign(l, r) => assign_helper!(self, l, r, IRItem::And),
+            OrAssign(l, r) => assign_helper!(self, l, r, IRItem::Or),
+            XorAssign(l, r) => assign_helper!(self, l, r, IRItem::Xor),
+            ShLAssign(l, r) => assign_helper!(self, l, r, IRItem::Sll),
+            SaRAssign(l, r) => assign_helper!(self, l, r, IRItem::Sar),
             Integer(i) => match expected_ty {
                 OpType::Int => VecDeque::from([IRItem::PushInt(*i)]),
                 OpType::Float => VecDeque::from([IRItem::PushFloat(*i as f32)]),

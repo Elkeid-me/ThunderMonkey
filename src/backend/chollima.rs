@@ -141,7 +141,7 @@ impl std::fmt::Display for IRItem {
             IRItem::MulFloat => write!(f, "mul_float"),
             IRItem::DivFloat => write!(f, "div_float"),
 
-            IRItem::Mod => write!(f, "mod_int"),
+            IRItem::Mod => write!(f, "mod"),
             IRItem::Sll => write!(f, "sll"),
             IRItem::Slr => write!(f, "slr"),
             IRItem::Sar => write!(f, "sar"),
