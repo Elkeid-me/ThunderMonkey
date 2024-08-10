@@ -204,7 +204,7 @@ fn parse_infix(l: Result<Expr, CompilerError>, op: Pair<Rule>, r: Result<Expr, C
         Rule::add => arith_op_check!(l, r, +, Add, op.line_col()),
         Rule::sub => arith_op_check!(l, r, -, Sub, op.line_col()),
 
-        Rule::logic_and => logic_op_check!(l, r, ||, LogicAnd, op.line_col()),
+        Rule::logic_and => logic_op_check!(l, r, &&, LogicAnd, op.line_col()),
         Rule::logic_or => logic_op_check!(l, r, ||, LogicOr, op.line_col()),
 
         Rule::shl => int_op_check!(l, r, <<, ShL, op.line_col()),

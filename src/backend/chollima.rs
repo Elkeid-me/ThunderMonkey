@@ -129,7 +129,7 @@ impl std::fmt::Display for IRItem {
             IRItem::DivInt => write!(f, "div_int"),
 
             IRItem::AddFloat => write!(f, "add_float"),
-            IRItem::SubFloat => write!(f, "sub——float"),
+            IRItem::SubFloat => write!(f, "sub_float"),
             IRItem::MulFloat => write!(f, "mul_float"),
             IRItem::DivFloat => write!(f, "div_float"),
 
