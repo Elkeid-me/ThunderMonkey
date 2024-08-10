@@ -13,7 +13,9 @@ ThunderMonkey 编译器由三部分构成：
 - [`pest`](https://github.com/pest-parser/pest)，一个基于解析表达式文法的解析器生成器。同时依赖 `pest_derive`。Apache-2.0 或 MIT licenses 许可证。
 - [`libc`](https://github.com/rust-lang/libc)，Rust 官方提供的与 C 互操作的工具库。Apache-2.0 或 MIT licenses 许可证。
 - [`rustc_hash`](https://github.com/rust-lang/rustc-hash)，Rust 官方提供的一种哈希表，相比 Rust 标准库的哈希算法，`rustc_hash` 更加快速，但抗碰撞能力稍弱。Apache-2.0 或 MIT licenses 许可证。
-- [`genawaiter`](https://github.com/whatisaphone/genawaiter)，无栈携程库。Apache-2.0 或 MIT 许可证。
+- [`genawaiter`](https://github.com/whatisaphone/genawaiter)，无栈协程库。Apache-2.0 或 MIT 许可证。
+
+ThunderMonkey 以 GPLv3 许可证开源。
 
 ## 主要数据结构
 
@@ -35,8 +37,8 @@ ThunderMonkey 编译器由三部分构成：
 1. `Int`（整型）；
 2. `FLoat`（浮点型）；
 3. `Void`（空）；
-4. `Pointer(Type, Vec<usize>)`（指针），`Vec<usize>` 存储了各个维度的长度；
-5. `Array(Type, Vec<usize>)`（数组），`Vec<usize>` 存储了各个维度的长度；
+4. `Pointer(Box<Type>, Vec<usize>)`（指针），`Vec<usize>` 存储了各个维度的长度；
+5. `Array(Box<Type>, Vec<usize>)`（数组），`Vec<usize>` 存储了各个维度的长度；
 6. `Function(Box<Type>, Vec<Type>)`（函数），`Box<Type>` 存储返回值类型，而 `Vec<Type>` 存储各个参数的类型；
 7. `VAList`，变参函数的参数列表，为 `putf` 保留。
 
@@ -62,7 +64,7 @@ ThunderMonkey 编译器由三部分构成：
     - 初始化器为 `Function(["a"], Block([Return(0)]))`
     - 类型为 `Function(Int, [Int])`
 
-实际实现中，初始化器和类型并不存储在 `Definition` 的内部，而是存储在一个哈希表中；`Definition` 仅存储指向哈希表的 `Handler`。
+实际实现中，初始化器和类型并不存储在 `Definition` 的内部，而是存储在一个哈希表中；`Definition` 仅存储指向哈希表的 `handler`（`u32`）。
 
 `Block`（复合语句）是语法树的基础。`Block` 是由一系列元素组成的列表，这些列表可以是：
 
@@ -77,10 +79,10 @@ pub enum ExprInner {
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
     // ......
-    Num(i32),
-    Var(String),
-    Func(String, Vec<Expr>),
-    Array(String, Vec<Expr>, bool),
+    Integer(i32),
+    Var(Handler),
+    Func(Handler, Vec<Expr>),
+    Array(Handler, Vec<Expr>),
 }
 ```
 
@@ -131,16 +133,23 @@ int main() {
 
 为支持作用域嵌套，ThunderMonkey 的符号表设计为一个栈（`Vec<HashMap<String, Definition>>`），在查找符号时，优先查找作用域最靠内的符号。
 
+实际实现中，第二次解析和语义检查是在一趟完成的。
+
 ## Chollima
 
-Chollima 是一种简单的、基于栈的中间表示。例如，`x = x / 10.0;` 编译为：
+Chollima 是一种简单的、基于栈的中间表示。例如，`int a = 0; int x = a / 10.0;` 编译为：
 
 ```
+load_addr a
+push_int 0
+store
 load_addr x
-load_addr x
+load_addr a
 load
+cvt_i_f
 push_float 10.0
 div_float
+cvt_f_i
 store
 ```
 
@@ -286,4 +295,4 @@ push {r0}
 
 特别地，在调用 SysY 运行时库函数时，前四个参数（如果有），将位于 `r0`、`r1`、`r2` 和 `r3` 寄存器。其余参数从右向左压栈。
 
-为与 SysY 运行时库一致，ThunderMonkey 以 `r7` 为帧指针，而非传统的 `r11`。
+为与 SysY 运行时库一致，ThunderMonkey 以 `r7` 为帧指针，而非 ARMv7 上传统的 `r11`。

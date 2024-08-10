@@ -53,8 +53,8 @@ fn compile() -> Result<(), Box<dyn std::error::Error>> {
 
         for (handler, def) in i {
             match def {
-                backend::chollima::GlobalItem::Variable { words, init } => (),
-                backend::chollima::GlobalItem::Function { code, context, arg_handlers } => {
+                backend::chollima::GlobalItem::Variable { words: _, init: _ } => (),
+                backend::chollima::GlobalItem::Function { code, context: _, arg_handlers: _ } => {
                     println!("{handler}");
                     for i in code {
                         println!("    {i}");

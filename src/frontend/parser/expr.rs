@@ -317,6 +317,7 @@ impl ASTBuilder {
             .parse(expr.into_inner())
     }
 
+    #[allow(unreachable_code)]
     fn parse_primary(&self, expr: Pair<Rule>) -> Result<Expr, CompilerError> {
         match expr.as_rule() {
             Rule::integer_bin | Rule::integer_oct | Rule::integer_dec | Rule::integer_hex => parse_integer(expr),

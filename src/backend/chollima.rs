@@ -35,6 +35,7 @@ pub enum OpType {
     Void,
 }
 
+#[allow(unused)]
 pub enum IRItem {
     AddInt,
     SubInt,
