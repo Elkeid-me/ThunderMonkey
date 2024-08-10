@@ -175,7 +175,7 @@ fn function(
                 asm.add_inst(Pop(R1));
                 asm.add_inst(Pop(R0));
                 asm.add_inst(Cmp(R0, R1));
-                asm.add_inst(Load1Eq(R2));
+                asm.add_inst(MovImmEq(R2, 1));
                 asm.add_inst(Push(R2));
             }
             IRItem::NeInt => {
@@ -183,7 +183,7 @@ fn function(
                 asm.add_inst(Pop(R1));
                 asm.add_inst(Pop(R0));
                 asm.add_inst(Cmp(R0, R1));
-                asm.add_inst(Load1Ne(R2));
+                asm.add_inst(MovImmNe(R2, 1));
                 asm.add_inst(Push(R2));
             }
             IRItem::LeInt => {
@@ -191,7 +191,7 @@ fn function(
                 asm.add_inst(Pop(R1));
                 asm.add_inst(Pop(R0));
                 asm.add_inst(Cmp(R0, R1));
-                asm.add_inst(Load1Le(R2));
+                asm.add_inst(MovImmLe(R2, 1));
                 asm.add_inst(Push(R2));
             }
             IRItem::LtInt => {
@@ -199,7 +199,7 @@ fn function(
                 asm.add_inst(Pop(R1));
                 asm.add_inst(Pop(R0));
                 asm.add_inst(Cmp(R0, R1));
-                asm.add_inst(Load1Lt(R2));
+                asm.add_inst(MovImmLt(R2, 1));
                 asm.add_inst(Push(R2));
             }
             IRItem::GeInt => {
@@ -207,7 +207,7 @@ fn function(
                 asm.add_inst(Pop(R1));
                 asm.add_inst(Pop(R0));
                 asm.add_inst(Cmp(R0, R1));
-                asm.add_inst(Load1Ge(R2));
+                asm.add_inst(MovImmGe(R2, 1));
                 asm.add_inst(Push(R2));
             }
             IRItem::GtInt => {
@@ -215,56 +215,56 @@ fn function(
                 asm.add_inst(Pop(R1));
                 asm.add_inst(Pop(R0));
                 asm.add_inst(Cmp(R0, R1));
-                asm.add_inst(Load1Gt(R2));
+                asm.add_inst(MovImmGt(R2, 1));
                 asm.add_inst(Push(R2));
             }
 
             IRItem::EqFloat => {
-                asm.add_inst(VEor(S2, S2, S2));
+                asm.add_inst(VMovI32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLdr1Eq(S2));
+                asm.add_inst(VMovI32ImmEq(S2, 1));
                 asm.add_inst(VPush(S2));
             }
             IRItem::NeFloat => {
-                asm.add_inst(VEor(S2, S2, S2));
+                asm.add_inst(VMovI32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLdr1Ne(S2));
+                asm.add_inst(VMovI32ImmNe(S2, 1));
                 asm.add_inst(VPush(S2));
             }
             IRItem::LeFloat => {
-                asm.add_inst(VEor(S2, S2, S2));
+                asm.add_inst(VMovI32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLdr1Le(S2));
+                asm.add_inst(VMovI32ImmLe(S2, 1));
                 asm.add_inst(VPush(S2));
             }
             IRItem::LtFloat => {
-                asm.add_inst(VEor(S2, S2, S2));
+                asm.add_inst(VMovI32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLdr1Lt(S2));
+                asm.add_inst(VMovI32ImmLt(S2, 1));
                 asm.add_inst(VPush(S2));
             }
             IRItem::GeFloat => {
-                asm.add_inst(VEor(S2, S2, S2));
+                asm.add_inst(VMovI32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLdr1Ge(S2));
+                asm.add_inst(VMovI32ImmGe(S2, 1));
                 asm.add_inst(VPush(S2));
             }
             IRItem::GtFloat => {
-                asm.add_inst(VEor(S2, S2, S2));
+                asm.add_inst(VMovI32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VLdr1Gt(S2));
+                asm.add_inst(VMovI32ImmGt(S2, 1));
                 asm.add_inst(VPush(S2));
             }
 
