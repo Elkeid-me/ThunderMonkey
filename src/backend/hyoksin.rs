@@ -408,11 +408,11 @@ fn function(
             IRItem::Label { addr } => asm.add_label(format!("__zvezda_label_{addr}")),
             IRItem::StartTime { lineno } => {
                 asm.add_inst(Mov32(R0, *lineno));
-                asm.add_inst(Mov32Label(R1, "starttime".to_string()));
+                asm.add_inst(Mov32Label(R1, "_sysy_starttime".to_string()));
             }
             IRItem::StopTime { lineno } => {
                 asm.add_inst(Mov32(R0, *lineno));
-                asm.add_inst(Mov32Label(R1, "stoptime".to_string()));
+                asm.add_inst(Mov32Label(R1, "_sysy_stoptime".to_string()));
                 asm.add_inst(Blx(R1));
             }
         }
