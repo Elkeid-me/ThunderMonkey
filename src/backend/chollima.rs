@@ -35,6 +35,7 @@ pub enum OpType {
     Void,
 }
 
+#[allow(unused)]
 pub enum IRItem {
     AddInt,
     SubInt,
@@ -170,19 +171,20 @@ impl std::fmt::Display for IRItem {
             IRItem::CvtIF => write!(f, "cvt_i_f"),
             IRItem::CvtFI => write!(f, "cvt_f_i"),
 
-            IRItem::Br { then, or_else } => write!(f, "br .L{then}, .L{or_else}"),
-            IRItem::Jmp { label } => write!(f, "jmp .L{label}"),
+            IRItem::Br { then, or_else } => write!(f, "br label_{then}, label_{or_else}"),
+            IRItem::Jmp { label } => write!(f, "jmp label_{label}"),
             IRItem::CallFloat { function, num_args } => write!(f, "call_float .F{function}, {num_args}"),
             IRItem::CallInt { function, num_args } => write!(f, "call_int .F{function}, {num_args}"),
+            IRItem::CallVoid { function, num_args } => write!(f, "call_void .F{function}, {num_args}"),
+
             IRItem::RetFloat => write!(f, "ret_float"),
             IRItem::RetInt => write!(f, "ret_int"),
 
-            IRItem::CallVoid { function, num_args } => write!(f, "call_void .F{function}, {num_args}"),
             IRItem::Load => write!(f, "load"),
             IRItem::Store => write!(f, "store"),
             IRItem::LoadAddr { var } => write!(f, "load_addr .V{var}"),
 
-            IRItem::Label { addr } => write!(f, ".L{addr}"),
+            IRItem::Label { addr } => write!(f, "label_{addr}"),
 
             IRItem::StartTime { lineno } => write!(f, "start_time {lineno}"),
             IRItem::StopTime { lineno } => write!(f, "stop_time {lineno}"),

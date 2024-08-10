@@ -18,6 +18,7 @@
 use super::ty::Type;
 use crate::{Handler, HashMap};
 
+#[allow(unused)]
 #[derive(Debug)]
 pub struct Definition {
     pub init: Option<Init>,
@@ -32,6 +33,7 @@ pub struct TranslationUnit {
     pub symbol_table: HashMap<Handler, Definition>,
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub enum Init {
     Function { block: Block, is_entry: bool, arg_handlers: Vec<Handler> },
@@ -78,6 +80,7 @@ pub enum BlockItem {
     Statement(Statement),
 }
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub enum ExprInner {
     Mul(Box<Expr>, Box<Expr>),

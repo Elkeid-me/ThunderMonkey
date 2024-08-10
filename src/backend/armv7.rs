@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
-#![allow(warnings)]
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(Clone)]
@@ -58,6 +57,7 @@ pub enum Inst {
     Asr(GPR, GPR, GPR),
 }
 
+#[allow(unused)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum GPR {
     R0,
@@ -77,6 +77,8 @@ pub enum GPR {
     R14, // LR
     R15, // PC
 }
+
+#[allow(unused)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum FPR {
     S0,
@@ -220,7 +222,6 @@ impl Display for Inst {
 
             Self::Add(rd, rs_1, rs_2) => write!(f, "add {rd}, {rs_1}, {rs_2}"),
             Self::Sub(rd, rs_1, rs_2) => write!(f, "sub {rd}, {rs_1}, {rs_2}"),
-            Self::And(rd, rs_1, rs_2) => write!(f, "and {rd}, {rs_1}, {rs_2}"),
             Self::Mul(rd, rs_1, rs_2) => write!(f, "mul {rd}, {rs_1}, {rs_2}"),
 
             Self::Push(reg) => write!(f, "push {{{reg}}}"),
