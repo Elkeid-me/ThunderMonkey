@@ -362,8 +362,8 @@ fn function(
                     _ => asm.add_inst(Mov32Label(R8, format!("__zvezda_label_{function}"))),
                 }
                 asm.add_inst(Blx(R8));
-                asm.add_inst(Mov32(R0, num_args as i32 * 4));
-                asm.add_inst(Add(R13, R0, R13));
+                asm.add_inst(Mov32(R3, num_args as i32 * 4));
+                asm.add_inst(Add(R13, R3, R13));
                 asm.add_inst(VPush(S0));
             }
             IRItem::CallInt { function, num_args } => {
@@ -416,8 +416,8 @@ fn function(
                     _ => asm.add_inst(Mov32Label(R8, format!("__zvezda_label_{function}"))),
                 }
                 asm.add_inst(Blx(R8));
-                asm.add_inst(Mov32(R0, num_args as i32 * 4));
-                asm.add_inst(Add(R13, R0, R13));
+                asm.add_inst(Mov32(R3, num_args as i32 * 4));
+                asm.add_inst(Add(R13, R3, R13));
                 asm.add_inst(Push(R0));
             }
             IRItem::CallVoid { function, num_args } => {
@@ -470,8 +470,8 @@ fn function(
                     _ => asm.add_inst(Mov32Label(R8, format!("__zvezda_label_{function}"))),
                 }
                 asm.add_inst(Blx(R8));
-                asm.add_inst(Mov32(R0, num_args as i32 * 4));
-                asm.add_inst(Add(R13, R0, R13));
+                asm.add_inst(Mov32(R3, num_args as i32 * 4));
+                asm.add_inst(Add(R13, R3, R13));
             }
             IRItem::Load => {
                 asm.add_inst(Pop(R0));

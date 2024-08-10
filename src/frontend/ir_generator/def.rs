@@ -25,10 +25,14 @@ impl Generator {
     fn fun_def(&mut self, handler: Handler, block: &Block, arg_handlers: &[Handler], ret_ty: &Type) {
         self.context.clear();
 
-        let ir = self.block(block, 0, 0, ret_ty).0;
+        let mut ir = self.block(block, 0, 0, ret_ty).0;
 
+        if !matches!(ir.back(), Some(IRItem::RetInt | IRItem::RetFloat)) {
+            ir.push_back(IRItem::RetInt);
+        }
         let v =
             GlobalItem::Function { code: ir, context: std::mem::take(&mut self.context), arg_handlers: arg_handlers.to_vec() };
+
         self.global_items.insert(handler, v);
     }
 

@@ -18,6 +18,7 @@
 use super::ty::Type;
 use crate::{Handler, HashMap};
 
+#[derive(Debug)]
 pub struct Definition {
     pub init: Option<Init>,
     pub ty: Type,
@@ -31,6 +32,7 @@ pub struct TranslationUnit {
     pub symbol_table: HashMap<Handler, Definition>,
 }
 
+#[derive(Debug)]
 pub enum Init {
     Function { block: Block, is_entry: bool, arg_handlers: Vec<Handler> },
     Expr(Expr),
@@ -40,7 +42,7 @@ pub enum Init {
     ConstList(ConstInitList),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum InitListItem {
     InitList(Box<InitList>),
     Expr(Expr),
@@ -48,7 +50,7 @@ pub enum InitListItem {
 
 pub type InitList = Vec<InitListItem>;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum ConstInitListItem {
     ConstInitList(Box<ConstInitList>),
     Int(i32),
@@ -57,6 +59,7 @@ pub enum ConstInitListItem {
 
 pub type ConstInitList = Vec<ConstInitListItem>;
 
+#[derive(Debug)]
 pub enum Statement {
     Expr(Expr),
     If(Expr, Box<Block>, Box<Block>),
@@ -68,13 +71,14 @@ pub enum Statement {
 
 pub type Block = Vec<BlockItem>;
 
+#[derive(Debug)]
 pub enum BlockItem {
     Def(Vec<Handler>),
     Block(Block),
     Statement(Statement),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum ExprInner {
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
@@ -126,7 +130,7 @@ pub enum ExprInner {
     ArrayElem(Handler, Vec<Expr>),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Expr {
     pub inner: ExprInner,
     pub ty: Type,
@@ -134,7 +138,7 @@ pub struct Expr {
     pub is_const: bool,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum ExprCategory {
     LValue,
     RValue,
