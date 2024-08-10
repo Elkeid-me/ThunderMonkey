@@ -220,51 +220,51 @@ fn function(
             }
 
             IRItem::EqFloat => {
-                asm.add_inst(VMovI32Imm(S2, 0));
+                asm.add_inst(VMovF32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VMovI32ImmEq(S2, 1));
+                asm.add_inst(VMovF32ImmEq(S2, 1));
                 asm.add_inst(VPush(S2));
             }
             IRItem::NeFloat => {
-                asm.add_inst(VMovI32Imm(S2, 0));
+                asm.add_inst(VMovF32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VMovI32ImmNe(S2, 1));
+                asm.add_inst(VMovF32ImmNe(S2, 1));
                 asm.add_inst(VPush(S2));
             }
             IRItem::LeFloat => {
-                asm.add_inst(VMovI32Imm(S2, 0));
+                asm.add_inst(VMovF32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VMovI32ImmLe(S2, 1));
+                asm.add_inst(VMovF32ImmLe(S2, 1));
                 asm.add_inst(VPush(S2));
             }
             IRItem::LtFloat => {
-                asm.add_inst(VMovI32Imm(S2, 0));
+                asm.add_inst(VMovF32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VMovI32ImmLt(S2, 1));
+                asm.add_inst(VMovF32ImmLt(S2, 1));
                 asm.add_inst(VPush(S2));
             }
             IRItem::GeFloat => {
-                asm.add_inst(VMovI32Imm(S2, 0));
+                asm.add_inst(VMovF32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VMovI32ImmGe(S2, 1));
+                asm.add_inst(VMovF32ImmGe(S2, 1));
                 asm.add_inst(VPush(S2));
             }
             IRItem::GtFloat => {
-                asm.add_inst(VMovI32Imm(S2, 0));
+                asm.add_inst(VMovF32Imm(S2, 0));
                 asm.add_inst(VPop(S1));
                 asm.add_inst(VPop(S0));
                 asm.add_inst(VCmpF32(S0, S1));
-                asm.add_inst(VMovI32ImmGt(S2, 1));
+                asm.add_inst(VMovF32ImmGt(S2, 1));
                 asm.add_inst(VPush(S2));
             }
 

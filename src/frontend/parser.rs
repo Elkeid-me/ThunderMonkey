@@ -221,7 +221,6 @@ impl ASTBuilder {
                 (Definition { init: None, ty: Function(ret_type_1, arg_types_1), .. }, Function(ret_type_2, arg_types_2))
                     if ret_type_1 == ret_type_2 && arg_types_1 == arg_types_2 =>
                 {
-                    println!("insert {id}");
                     self.symbol_table.get_mut(old_handler).unwrap().init = init;
                     Ok(*old_handler)
                 }
