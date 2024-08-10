@@ -218,7 +218,7 @@ Chollima 没有一元运算指令，因为：
 - `!x` 等价于 `x == 0`，可以用 `eq_int` 或 `eq_float` 表达；
 - `-x` 等价于 `0 - x`，可以用 `sub_int` 或 `sub_float` 表达；
 - `+x` 等价于 `x`；
-- `~x` 等价于 `x ^ 0xffffff`，可以用 `xor_int`表达。
+- `~x` 等价于 `x ^ 0xffffffff`，可以用 `xor_int`表达。
 
 ### 栈操纵指令
 
