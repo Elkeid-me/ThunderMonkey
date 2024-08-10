@@ -46,18 +46,21 @@ fn compile() -> Result<(), Box<dyn std::error::Error>> {
     let code = preprocess(read_to_string(input)?);
     // let code = read_to_string(input)?;
     let ir = frontend::generator_ir(&code)?;
-    let IR { symbol_table, ir: i } = &ir;
-    println!("{:#?}", symbol_table);
 
-    for (handler, def) in i {
-        match def {
-            backend::chollima::GlobalItem::Variable { words, init } => (),
-            backend::chollima::GlobalItem::Function { code, context, arg_handlers } => {
-                println!("{handler}");
-                for i in code {
-                    println!("    {i}");
+    if cfg!(feature = "debug_output") {
+        let IR { symbol_table, ir: i } = &ir;
+        println!("{:#?}", symbol_table);
+
+        for (handler, def) in i {
+            match def {
+                backend::chollima::GlobalItem::Variable { words, init } => (),
+                backend::chollima::GlobalItem::Function { code, context, arg_handlers } => {
+                    println!("{handler}");
+                    for i in code {
+                        println!("    {i}");
+                    }
                 }
-            },
+            }
         }
     }
 
