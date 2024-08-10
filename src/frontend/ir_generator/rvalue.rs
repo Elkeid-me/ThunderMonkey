@@ -226,7 +226,7 @@ impl Generator {
                 ]);
 
                 ir
-            },
+            }
             LogicNot(expr) => self.expr_rvalue(
                 &Expr {
                     inner: Eq(
@@ -341,6 +341,7 @@ impl Generator {
                 let mut ir: VecDeque<_> = args
                     .into_iter()
                     .zip(arg_tys)
+                    .rev()
                     .flat_map(|(expr, ty)| {
                         let expected_ty = match ty {
                             Type::Int | Type::Pointer(_, _) => OpType::Int,

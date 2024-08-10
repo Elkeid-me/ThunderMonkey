@@ -46,20 +46,20 @@ fn compile() -> Result<(), Box<dyn std::error::Error>> {
     let code = preprocess(read_to_string(input)?);
     // let code = read_to_string(input)?;
     let ir = frontend::generator_ir(&code)?;
-    // let IR { symbol_table, ir: i } = &ir;
-    // println!("{:#?}", symbol_table);
+    let IR { symbol_table, ir: i } = &ir;
+    println!("{:#?}", symbol_table);
 
-    // for (handler, def) in i {
-    //     match def {
-    //         backend::chollima::GlobalItem::Variable { words, init } => (),
-    //         backend::chollima::GlobalItem::Function { code, context, arg_handlers } => {
-    //             println!("{handler}");
-    //             for i in code {
-    //                 println!("    {i}");
-    //             }
-    //         },
-    //     }
-    // }
+    for (handler, def) in i {
+        match def {
+            backend::chollima::GlobalItem::Variable { words, init } => (),
+            backend::chollima::GlobalItem::Function { code, context, arg_handlers } => {
+                println!("{handler}");
+                for i in code {
+                    println!("    {i}");
+                }
+            },
+        }
+    }
 
     let asm = backend::hyoksin::asm_generate(ir);
     let mut f = File::create(output)?;

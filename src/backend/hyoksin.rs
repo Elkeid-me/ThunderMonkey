@@ -315,7 +315,7 @@ fn function(
                 asm.add_inst(Mov32Label(R2, format!("__zvezda_label_{then}")));
                 asm.add_inst(Mov32Label(R3, format!("__zvezda_label_{or_else}")));
                 asm.add_inst(Pop(R0));
-                asm.add_inst(Mov32(R1, 0));
+                asm.add_inst(MovImm(R1, 0));
                 asm.add_inst(Cmp(R0, R1));
                 asm.add_inst(BxNe(R2));
                 asm.add_inst(Bx(R3));
