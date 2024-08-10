@@ -81,11 +81,11 @@ pub enum GPR {
     R4,
     R5,
     R6,
-    R7,
+    R7, // BP
     R8,
     R9,
     R10,
-    R11, // BP
+    R11,
     R12,
     R13, // SP
     R14, // LR

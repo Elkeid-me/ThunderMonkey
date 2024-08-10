@@ -66,9 +66,9 @@ fn function(
         asm.add_label(format!("__zvezda_label_{handler}"));
     }
 
-    asm.add_inst(Push(R11));
+    asm.add_inst(Push(R7));
     asm.add_inst(Push(R14));
-    asm.add_inst(Mov(R11, R13));
+    asm.add_inst(Mov(R7, R13));
     asm.add_inst(Mov32(R0, stack_size));
     asm.add_inst(Add(R13, R0, R13));
     for ir in code {
@@ -499,7 +499,7 @@ fn function(
                 if c.contains_key(var) {
                     let offset = c.get(var).unwrap();
                     asm.add_inst(Mov32(R0, *offset));
-                    asm.add_inst(Add(R0, R0, R11));
+                    asm.add_inst(Add(R0, R0, R7));
                     asm.add_inst(Push(R0));
                 } else {
                     asm.add_inst(Mov32Label(R0, format!("__zvezda_label_{var}")));
@@ -508,16 +508,16 @@ fn function(
             }
             IRItem::RetFloat => {
                 asm.add_inst(VPop(S0));
-                asm.add_inst(Mov(R13, R11));
+                asm.add_inst(Mov(R13, R7));
                 asm.add_inst(Pop(R14));
-                asm.add_inst(Pop(R11));
+                asm.add_inst(Pop(R7));
                 asm.add_inst(Bx(R14));
             }
             IRItem::RetInt => {
                 asm.add_inst(Pop(R0));
-                asm.add_inst(Mov(R13, R11));
+                asm.add_inst(Mov(R13, R7));
                 asm.add_inst(Pop(R14));
-                asm.add_inst(Pop(R11));
+                asm.add_inst(Pop(R7));
                 asm.add_inst(Bx(R14));
             }
             IRItem::Label { addr } => asm.add_label(format!("__zvezda_label_{addr}")),
