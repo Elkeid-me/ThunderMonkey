@@ -137,14 +137,18 @@ int main() {
 
 ## Chollima
 
-Chollima 是一种简单的、基于栈的中间表示。例如，`int a = 0; int x = a / 10.0;` 编译为：
+Chollima 是一种简单的、基于栈的中间表示。例如，`int a[1] = {0}; int x = a[0] / 10.0;` 编译为：
 
 ```
 load_addr a
 push_int 0
+add_int
+push_int 0
 store
 load_addr x
 load_addr a
+push_int 0
+add_int
 load
 cvt_i_f
 push_float 10.0
