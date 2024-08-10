@@ -78,6 +78,8 @@ impl Generator {
                 ir.push_back(IRItem::PopWords(1));
                 ir
             }
+            StartTime(lineno) => VecDeque::from([IRItem::StartTime { lineno: *lineno }]),
+            StopTime(lineno) => VecDeque::from([IRItem::StopTime { lineno: *lineno }]),
         }
     }
 }

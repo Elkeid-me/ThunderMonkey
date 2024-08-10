@@ -48,12 +48,6 @@ pub enum Inst {
     Add(GPR, GPR, GPR),
     Sub(GPR, GPR, GPR),
     Mul(GPR, GPR, GPR),
-    Sdiv(GPR, GPR, GPR),
-
-    VAddF32(FPR, FPR, FPR),
-    VSubF32(FPR, FPR, FPR),
-    VMulF32(FPR, FPR, FPR),
-    VDivF32(FPR, FPR, FPR),
 
     Eor(GPR, GPR, GPR),
     EorImm(GPR, GPR, i32),
@@ -228,7 +222,6 @@ impl Display for Inst {
             Self::Sub(rd, rs_1, rs_2) => write!(f, "sub {rd}, {rs_1}, {rs_2}"),
             Self::And(rd, rs_1, rs_2) => write!(f, "and {rd}, {rs_1}, {rs_2}"),
             Self::Mul(rd, rs_1, rs_2) => write!(f, "mul {rd}, {rs_1}, {rs_2}"),
-            Self::Sdiv(rd, rs_1, rs_2) => write!(f, "sdiv {rd}, {rs_1}, {rs_2}"),
 
             Self::Push(reg) => write!(f, "push {{{reg}}}"),
             Self::Pop(reg) => write!(f, "pop {{{reg}}}"),
@@ -237,14 +230,18 @@ impl Display for Inst {
 
             Self::Blx(reg) => write!(f, "blx {reg}"),
             Self::Bx(reg) => write!(f, "bx {reg}"),
+            Self::BxNe(reg) => write!(f, "bxne {reg}"),
+
             Self::Mov32(reg, imm) => write!(f, "mov32 {reg}, {}", *imm as u32),
             Self::Mov32Label(reg, label) => write!(f, "mov32 {reg}, {label}"),
             Self::Mov(rd, rs) => write!(f, "mov {rd}, {rs}"),
-
-            Self::VAddF32(rd, rs_1, rs_2) => write!(f, "vadd.f32 {rd}, {rs_1}, {rs_2}"),
-            Self::VSubF32(rd, rs_1, rs_2) => write!(f, "vsub.f32 {rd}, {rs_1}, {rs_2}"),
-            Self::VMulF32(rd, rs_1, rs_2) => write!(f, "vmul.f32 {rd}, {rs_1}, {rs_2}"),
-            Self::VDivF32(rd, rs_1, rs_2) => write!(f, "vdiv.f32 {rd}, {rs_1}, {rs_2}"),
+            Self::MovImm(reg, imm) => write!(f, "mov {reg}, #{imm}"),
+            Self::MovImmEq(reg, imm) => write!(f, "moveq {reg}, #{imm}"),
+            Self::MovImmNe(reg, imm) => write!(f, "movne {reg}, #{imm}"),
+            Self::MovImmGe(reg, imm) => write!(f, "movge {reg}, #{imm}"),
+            Self::MovImmGt(reg, imm) => write!(f, "movgt {reg}, #{imm}"),
+            Self::MovImmLe(reg, imm) => write!(f, "movle {reg}, #{imm}"),
+            Self::MovImmLt(reg, imm) => write!(f, "movlt {reg}, #{imm}"),
 
             Self::Eor(rd, rs_1, rs_2) => write!(f, "eor {rd}, {rs_1}, {rs_2}"),
             Self::EorImm(rd, rs, imm) => write!(f, "eor {rd}, {rs}, #{imm}"),
@@ -253,16 +250,8 @@ impl Display for Inst {
             Self::Lsl(rd, rs_1, rs_2) => write!(f, "lsl {rd}, {rs_1}, {rs_2}"),
             Self::Lsr(rd, rs_1, rs_2) => write!(f, "lsr {rd}, {rs_1}, {rs_2}"),
             Self::Asr(rd, rs_1, rs_2) => write!(f, "asr {rd}, {rs_1}, {rs_2}"),
-            Self::BxNe(reg) => write!(f, "bxne {reg}"),
-            Self::Cmp(rd, rs) => write!(f, "cmp {rd}, {rs}"),
 
-            Self::MovImm(reg, imm) => write!(f, "mov {reg}, #{imm}"),
-            Self::MovImmEq(reg, imm) => write!(f, "moveq {reg}, #{imm}"),
-            Self::MovImmNe(reg, imm) => write!(f, "movne {reg}, #{imm}"),
-            Self::MovImmGe(reg, imm) => write!(f, "movge {reg}, #{imm}"),
-            Self::MovImmGt(reg, imm) => write!(f, "movgt {reg}, #{imm}"),
-            Self::MovImmLe(reg, imm) => write!(f, "movle {reg}, #{imm}"),
-            Self::MovImmLt(reg, imm) => write!(f, "movlt {reg}, #{imm}"),
+            Self::Cmp(rd, rs) => write!(f, "cmp {rd}, {rs}"),
         }
     }
 }

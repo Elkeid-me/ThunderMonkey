@@ -118,6 +118,13 @@ pub enum IRItem {
     Label {
         addr: Handler,
     },
+
+    StartTime {
+        lineno: i32,
+    },
+    StopTime {
+        lineno: i32,
+    },
 }
 
 impl std::fmt::Display for IRItem {
@@ -129,7 +136,7 @@ impl std::fmt::Display for IRItem {
             IRItem::DivInt => write!(f, "div_int"),
 
             IRItem::AddFloat => write!(f, "add_float"),
-            IRItem::SubFloat => write!(f, "sub——float"),
+            IRItem::SubFloat => write!(f, "sub_float"),
             IRItem::MulFloat => write!(f, "mul_float"),
             IRItem::DivFloat => write!(f, "div_float"),
 
@@ -176,6 +183,9 @@ impl std::fmt::Display for IRItem {
             IRItem::LoadAddr { var } => write!(f, "load_addr .V{var}"),
 
             IRItem::Label { addr } => write!(f, ".L{addr}"),
+
+            IRItem::StartTime { lineno } => write!(f, "start_time {lineno}"),
+            IRItem::StopTime { lineno } => write!(f, "stop_time {lineno}"),
         }
     }
 }
