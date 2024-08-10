@@ -358,8 +358,8 @@ fn function(
                         asm.add_inst(Mov32Label(R8, format!("putfarray")));
                     }
                     "putf" => asm.add_inst(Mov32Label(R8, format!("putf"))),
-                    "starttime" => asm.add_inst(Mov32Label(R8, format!("starttime"))),
-                    "stoptime" => asm.add_inst(Mov32Label(R8, format!("stoptime"))),
+                    "starttime" => continue,
+                    "stoptime" => continue,
                     _ => asm.add_inst(Mov32Label(R8, format!("__zvezda_label_{function}"))),
                 }
                 asm.add_inst(Blx(R8));
