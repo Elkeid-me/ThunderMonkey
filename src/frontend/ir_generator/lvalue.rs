@@ -20,6 +20,38 @@ use crate::backend::chollima::*;
 use crate::frontend::{ast::Expr, ast::ExprInner::*, ty::Type};
 use std::collections::VecDeque;
 
+macro_rules! assign_helper {
+    ($generator: expr, $l: expr, $r: expr, $op: path) => {{
+        let mut ir = $generator.expr_lvalue($l);
+        ir.extend([IRItem::Double, IRItem::Double, IRItem::Load]);
+        let ty = match $l.ty {
+            Type::Int => OpType::Int,
+            Type::Float => OpType::Float,
+            _ => unreachable!(),
+        };
+        ir.extend($generator.expr_rvalue($r, ty));
+        ir.extend([$op, IRItem::Store]);
+        ir
+    }};
+    ($generator: expr, $l: expr, $r: expr, $op_1: path, $op_2: path) => {{
+        let mut ir = $generator.expr_lvalue($l);
+        ir.extend([IRItem::Double, IRItem::Double, IRItem::Load]);
+        let ty = match $l.ty {
+            Type::Int => OpType::Int,
+            Type::Float => OpType::Float,
+            _ => unreachable!(),
+        };
+        ir.extend($generator.expr_rvalue($r, ty));
+        match ty {
+            OpType::Int => ir.push_back($op_1),
+            OpType::Float => ir.push_back($op_2),
+            _ => unreachable!(),
+        }
+        ir.push_back(IRItem::Store);
+        ir
+    }};
+}
+
 impl Generator {
     pub fn expr_lvalue(&self, expr: &Expr) -> VecDeque<IRItem> {
         let Expr { inner, ty: _, category: _, is_const: _ } = expr;
@@ -30,26 +62,26 @@ impl Generator {
             PreDec(_) => todo!(),
             Assignment(l, r) => {
                 let mut ir = self.expr_lvalue(l);
+                ir.push_back(IRItem::Double);
                 let ty = match l.ty {
                     Type::Int => OpType::Int,
                     Type::Float => OpType::Float,
                     _ => unreachable!(),
                 };
-                ir.push_back(IRItem::Double);
                 ir.extend(self.expr_rvalue(r, ty));
                 ir.push_back(IRItem::Store);
                 ir
             }
-            AddAssign(_, _) => todo!(),
-            SubAssign(_, _) => todo!(),
-            MulAssign(_, _) => todo!(),
-            DivAssign(_, _) => todo!(),
-            ModAssign(_, _) => todo!(),
-            AndAssign(_, _) => todo!(),
-            OrAssign(_, _) => todo!(),
-            XorAssign(_, _) => todo!(),
-            ShLAssign(_, _) => todo!(),
-            SaRAssign(_, _) => todo!(),
+            AddAssign(l, r) => assign_helper!(self, l, r, IRItem::AddInt, IRItem::AddFloat),
+            SubAssign(l, r) => assign_helper!(self, l, r, IRItem::SubInt, IRItem::SubFloat),
+            MulAssign(l, r) => assign_helper!(self, l, r, IRItem::MulInt, IRItem::MulFloat),
+            DivAssign(l, r) => assign_helper!(self, l, r, IRItem::DivInt, IRItem::DivFloat),
+            ModAssign(l, r) => assign_helper!(self, l, r, IRItem::Mod),
+            AndAssign(l, r) => assign_helper!(self, l, r, IRItem::And),
+            OrAssign(l, r) => assign_helper!(self, l, r, IRItem::Or),
+            XorAssign(l, r) => assign_helper!(self, l, r, IRItem::Xor),
+            ShLAssign(l, r) => assign_helper!(self, l, r, IRItem::Sll),
+            SaRAssign(l, r) => assign_helper!(self, l, r, IRItem::Sar),
             Var(handler) => VecDeque::from([IRItem::LoadAddr { var: *handler }]),
             ArrayElem(handler, subscripts) => self.array_elem_helper(*handler, subscripts),
             _ => unreachable!(),
