@@ -216,14 +216,13 @@ impl Generator {
 
             LogicAnd(l, r) => {
                 let zero = self.counter.borrow_mut().get();
-                let eval_next = self.counter.borrow_mut().get();
                 let one = self.counter.borrow_mut().get();
                 let next = self.counter.borrow_mut().get();
                 let mut ir = self.expr_rvalue(l, OpType::Int);
-                ir.extend([IRItem::Br { then: eval_next, or_else: zero }, IRItem::Label { addr: eval_next }]);
+                ir.push_back(IRItem::BrZ { then: zero });
                 ir.extend(self.expr_rvalue(r, OpType::Int));
                 ir.extend([
-                    IRItem::Br { then: one, or_else: zero },
+                    IRItem::BrZ { then: zero },
                     IRItem::Label { addr: one },
                     IRItem::PushInt(1),
                     IRItem::Jmp { label: next },
@@ -237,14 +236,13 @@ impl Generator {
             }
             LogicOr(l, r) => {
                 let zero = self.counter.borrow_mut().get();
-                let eval_next = self.counter.borrow_mut().get();
                 let one = self.counter.borrow_mut().get();
                 let next = self.counter.borrow_mut().get();
                 let mut ir = self.expr_rvalue(l, OpType::Int);
-                ir.extend([IRItem::Br { then: one, or_else: eval_next }, IRItem::Label { addr: eval_next }]);
+                ir.push_back(IRItem::BrNz { then: one });
                 ir.extend(self.expr_rvalue(r, OpType::Int));
                 ir.extend([
-                    IRItem::Br { then: one, or_else: zero },
+                    IRItem::BrZ { then: zero },
                     IRItem::Label { addr: one },
                     IRItem::PushInt(1),
                     IRItem::Jmp { label: next },
@@ -336,7 +334,7 @@ impl Generator {
                 ir.extend(self.expr_rvalue(r, ty));
                 ir.extend([IRItem::Store, IRItem::Load]);
                 ir
-            },
+            }
             AddAssign(l, r) => assign_helper!(self, l, r, IRItem::AddInt, IRItem::AddFloat),
             SubAssign(l, r) => assign_helper!(self, l, r, IRItem::SubInt, IRItem::SubFloat),
             MulAssign(l, r) => assign_helper!(self, l, r, IRItem::MulInt, IRItem::MulFloat),
@@ -421,8 +419,6 @@ impl Generator {
 
                 ir
             }
-            StartTime(lineno) => VecDeque::from([IRItem::StartTime { lineno: *lineno }]),
-            StopTime(lineno) => VecDeque::from([IRItem::StopTime { lineno: *lineno }]),
         }
     }
 }

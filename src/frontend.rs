@@ -19,7 +19,7 @@ pub mod ast;
 mod error;
 mod ir_generator;
 pub mod parser;
-mod ty;
+pub mod ty;
 
 use crate::backend::chollima::IR;
 

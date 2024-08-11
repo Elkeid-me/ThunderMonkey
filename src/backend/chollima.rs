@@ -80,9 +80,12 @@ pub enum IRItem {
     CvtIF,
     CvtFI,
 
-    Br {
+    BrZ {
         then: Handler,
-        or_else: Handler,
+    },
+
+    BrNz {
+        then: Handler,
     },
 
     Jmp {
@@ -118,13 +121,6 @@ pub enum IRItem {
 
     Label {
         addr: Handler,
-    },
-
-    StartTime {
-        lineno: i32,
-    },
-    StopTime {
-        lineno: i32,
     },
 }
 
@@ -171,7 +167,9 @@ impl std::fmt::Display for IRItem {
             IRItem::CvtIF => write!(f, "cvt_i_f"),
             IRItem::CvtFI => write!(f, "cvt_f_i"),
 
-            IRItem::Br { then, or_else } => write!(f, "br label_{then}, label_{or_else}"),
+            IRItem::BrZ { then } => write!(f, "br_z label_{then}"),
+            IRItem::BrNz { then } => write!(f, "br_nz label_{then}"),
+
             IRItem::Jmp { label } => write!(f, "jmp label_{label}"),
             IRItem::CallFloat { function, num_args } => write!(f, "call_float .F{function}, {num_args}"),
             IRItem::CallInt { function, num_args } => write!(f, "call_int .F{function}, {num_args}"),
@@ -185,9 +183,6 @@ impl std::fmt::Display for IRItem {
             IRItem::LoadAddr { var } => write!(f, "load_addr .V{var}"),
 
             IRItem::Label { addr } => write!(f, "label_{addr}"),
-
-            IRItem::StartTime { lineno } => write!(f, "start_time {lineno}"),
-            IRItem::StopTime { lineno } => write!(f, "stop_time {lineno}"),
         }
     }
 }

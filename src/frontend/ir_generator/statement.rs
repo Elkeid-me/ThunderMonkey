@@ -25,11 +25,11 @@ impl Generator {
         let while_label = self.counter.borrow_mut().get();
         let while_next_label = self.counter.borrow_mut().get();
         let (block_ir, block_label) = self.block(block, while_label, while_next_label, ret_ty);
-        let mut ir = VecDeque::from([IRItem::Jmp { label: while_label }, IRItem::Label { addr: while_label }]);
-        ir.extend(self.expr_rvalue(cond, OpType::Int));
-        ir.extend([IRItem::Br { then: block_label, or_else: while_next_label }, IRItem::Label { addr: block_label }]);
+        let mut ir = VecDeque::from([IRItem::Jmp { label: while_label }, IRItem::Label { addr: block_label }]);
         ir.extend(block_ir);
-        ir.extend([IRItem::Jmp { label: while_label }, IRItem::Label { addr: while_next_label }]);
+        ir.push_back(IRItem::Label { addr: while_label });
+        ir.extend(self.expr_rvalue(cond, OpType::Int));
+        ir.push_back(IRItem::BrNz { then: block_label });
         ir
     }
     fn if_statement(
@@ -45,41 +45,32 @@ impl Generator {
             (true, true) => self.expr_dvalue(cond),
             (false, true) => {
                 let next_label = self.counter.borrow_mut().get();
-                let (then_block_ir, then_block_label) = self.block(then_block, while_label, while_next_label, ret_ty);
+                let (then_block_ir, _) = self.block(then_block, while_label, while_next_label, ret_ty);
                 let mut ir = self.expr_rvalue(cond, OpType::Int);
-                ir.extend([
-                    IRItem::Br { then: then_block_label, or_else: next_label },
-                    IRItem::Label { addr: then_block_label },
-                ]);
+                ir.push_back(IRItem::BrZ { then: next_label });
                 ir.extend(then_block_ir);
-                ir.extend([IRItem::Jmp { label: next_label }, IRItem::Label { addr: next_label }]);
+                ir.push_back(IRItem::Label { addr: next_label });
                 ir
             }
             (true, false) => {
                 let next_label = self.counter.borrow_mut().get();
-                let (else_block_ir, else_block_label) = self.block(else_block, while_label, while_next_label, ret_ty);
+                let (else_block_ir, _) = self.block(else_block, while_label, while_next_label, ret_ty);
                 let mut ir = self.expr_rvalue(cond, OpType::Int);
-                ir.extend([
-                    IRItem::Br { then: next_label, or_else: else_block_label },
-                    IRItem::Label { addr: else_block_label },
-                ]);
+                ir.push_back(IRItem::BrNz { then: next_label });
                 ir.extend(else_block_ir);
-                ir.extend([IRItem::Jmp { label: next_label }, IRItem::Label { addr: next_label }]);
+                ir.push_back(IRItem::Label { addr: next_label });
                 ir
             }
             (false, false) => {
                 let next_label = self.counter.borrow_mut().get();
-                let (then_block_ir, then_block_label) = self.block(then_block, while_label, while_next_label, ret_ty);
+                let (then_block_ir, _) = self.block(then_block, while_label, while_next_label, ret_ty);
                 let (else_block_ir, else_block_label) = self.block(else_block, while_label, while_next_label, ret_ty);
                 let mut ir = self.expr_rvalue(cond, OpType::Int);
-                ir.extend([
-                    IRItem::Br { then: then_block_label, or_else: else_block_label },
-                    IRItem::Label { addr: then_block_label },
-                ]);
+                ir.push_back(IRItem::BrZ { then: else_block_label });
                 ir.extend(then_block_ir);
                 ir.extend([IRItem::Jmp { label: next_label }, IRItem::Label { addr: else_block_label }]);
                 ir.extend(else_block_ir);
-                ir.extend([IRItem::Jmp { label: next_label }, IRItem::Label { addr: next_label }]);
+                ir.push_back(IRItem::Label { addr: next_label });
                 ir
             }
         }

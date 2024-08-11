@@ -15,18 +15,20 @@
 // You should have received a copy of the GNU General Public License
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
+use std::collections::VecDeque;
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(Clone)]
 pub enum Inst {
-    Push(GPR),
-    Pop(GPR),
-    VPush(FPR),
-    VPop(FPR),
+    Push(Vec<GPR>),
+    Pop(Vec<GPR>),
+    VPush(Vec<FPR>),
+    VPop(Vec<FPR>),
 
     Blx(GPR),
     Bx(GPR),
 
+    BxEq(GPR),
     BxNe(GPR),
     Cmp(GPR, GPR),
 
@@ -55,6 +57,11 @@ pub enum Inst {
     Lsl(GPR, GPR, GPR),
     Lsr(GPR, GPR, GPR),
     Asr(GPR, GPR, GPR),
+
+    VAddF32(FPR, FPR, FPR),
+    VSubF32(FPR, FPR, FPR),
+    VMulF32(FPR, FPR, FPR),
+    VDivF32(FPR, FPR, FPR),
 }
 
 #[allow(unused)]
@@ -73,9 +80,9 @@ pub enum GPR {
     R10,
     R11,
     R12,
-    R13, // SP
-    R14, // LR
-    R15, // PC
+    SP,
+    LR,
+    PC,
 }
 
 #[allow(unused)]
@@ -131,7 +138,7 @@ pub enum ARMItem {
     Directive(Directive),
 }
 
-pub type ARM = Vec<ARMItem>;
+pub type ARM = VecDeque<ARMItem>;
 
 impl Display for GPR {
     fn fmt(&self, f: &mut Formatter) -> Result {
@@ -149,9 +156,9 @@ impl Display for GPR {
             Self::R10 => write!(f, "r10"),
             Self::R11 => write!(f, "r11"),
             Self::R12 => write!(f, "r12"),
-            Self::R13 => write!(f, "r13"),
-            Self::R14 => write!(f, "r14"),
-            Self::R15 => write!(f, "r15"),
+            Self::SP => write!(f, "r13"),
+            Self::LR => write!(f, "r14"),
+            Self::PC => write!(f, "r15"),
         }
     }
 }
@@ -204,13 +211,13 @@ pub trait ARMTrait {
 
 impl ARMTrait for ARM {
     fn add_label(&mut self, label: String) {
-        self.push(ARMItem::Label(label));
+        self.push_back(ARMItem::Label(label));
     }
     fn add_inst(&mut self, inst: Inst) {
-        self.push(ARMItem::Inst(inst));
+        self.push_back(ARMItem::Inst(inst));
     }
     fn add_directive(&mut self, directive: Directive) {
-        self.push(ARMItem::Directive(directive));
+        self.push_back(ARMItem::Directive(directive));
     }
 }
 
@@ -224,13 +231,26 @@ impl Display for Inst {
             Self::Sub(rd, rs_1, rs_2) => write!(f, "sub {rd}, {rs_1}, {rs_2}"),
             Self::Mul(rd, rs_1, rs_2) => write!(f, "mul {rd}, {rs_1}, {rs_2}"),
 
-            Self::Push(reg) => write!(f, "push {{{reg}}}"),
-            Self::Pop(reg) => write!(f, "pop {{{reg}}}"),
-            Self::VPush(reg) => write!(f, "vpush {{{reg}}}"),
-            Self::VPop(reg) => write!(f, "vpop {{{reg}}}"),
+            Self::Push(reg_list) => {
+                let list: Vec<_> = reg_list.iter().map(|reg| format!("{reg}")).collect();
+                write!(f, "push {{{}}}", list.as_slice().join(", "))
+            }
+            Self::Pop(reg_list) => {
+                let list: Vec<_> = reg_list.iter().map(|reg| format!("{reg}")).collect();
+                write!(f, "pop {{{}}}", list.as_slice().join(", "))
+            }
+            Self::VPush(reg_list) => {
+                let list: Vec<_> = reg_list.iter().map(|reg| format!("{reg}")).collect();
+                write!(f, "vpush {{{}}}", list.as_slice().join(", "))
+            }
+            Self::VPop(reg_list) => {
+                let list: Vec<_> = reg_list.iter().map(|reg| format!("{reg}")).collect();
+                write!(f, "vpop {{{}}}", list.as_slice().join(", "))
+            }
 
             Self::Blx(reg) => write!(f, "blx {reg}"),
             Self::Bx(reg) => write!(f, "bx {reg}"),
+            Self::BxEq(reg) => write!(f, "bxeq {reg}"),
             Self::BxNe(reg) => write!(f, "bxne {reg}"),
 
             Self::Mov32(reg, imm) => write!(f, "mov32 {reg}, {}", *imm as u32),
@@ -253,6 +273,11 @@ impl Display for Inst {
             Self::Asr(rd, rs_1, rs_2) => write!(f, "asr {rd}, {rs_1}, {rs_2}"),
 
             Self::Cmp(rd, rs) => write!(f, "cmp {rd}, {rs}"),
+
+            Self::VAddF32(rd, rs_1, rs_2) => write!(f, "vadd.f32 {rd}, {rs_1}, {rs_2}"),
+            Self::VSubF32(rd, rs_1, rs_2) => write!(f, "vsub.f32 {rd}, {rs_1}, {rs_2}"),
+            Self::VMulF32(rd, rs_1, rs_2) => write!(f, "vmul.f32 {rd}, {rs_1}, {rs_2}"),
+            Self::VDivF32(rd, rs_1, rs_2) => write!(f, "vdiv.f32 {rd}, {rs_1}, {rs_2}"),
         }
     }
 }
