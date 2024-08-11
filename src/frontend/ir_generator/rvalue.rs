@@ -59,37 +59,17 @@ macro_rules! cmp_helper {
                 ir.extend([$op_1, IRItem::CvtIF]);
                 ir
             }
-            (Type::Int, Type::Float, OpType::Int) => {
+            (Type::Int, Type::Float, OpType::Int)
+            | (Type::Float, Type::Int, OpType::Int)
+            | (Type::Float, Type::Float, OpType::Int) => {
                 let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
                 ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.push_back($op_2);
                 ir
             }
-            (Type::Int, Type::Float, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
-                ir.extend([$op_2, IRItem::CvtIF]);
-                ir
-            }
-            (Type::Float, Type::Int, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
-                ir.push_back($op_2);
-                ir
-            }
-            (Type::Float, Type::Int, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
-                ir.extend([$op_2, IRItem::CvtIF]);
-                ir
-            }
-            (Type::Float, Type::Float, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
-                ir.push_back($op_2);
-                ir
-            }
-            (Type::Float, Type::Float, OpType::Float) => {
+            (Type::Int, Type::Float, OpType::Float)
+            | (Type::Float, Type::Int, OpType::Float)
+            | (Type::Float, Type::Float, OpType::Float) => {
                 let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
                 ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.extend([$op_2, IRItem::CvtIF]);
@@ -117,37 +97,17 @@ macro_rules! arith_helper {
                 ir.extend([$op_1, IRItem::CvtIF]);
                 ir
             }
-            (Type::Int, Type::Float, OpType::Int) => {
+            (Type::Int, Type::Float, OpType::Int)
+            | (Type::Float, Type::Int, OpType::Int)
+            | (Type::Float, Type::Float, OpType::Int) => {
                 let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
                 ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.extend([$op_2, IRItem::CvtFI]);
                 ir
             }
-            (Type::Int, Type::Float, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
-                ir.push_back($op_2);
-                ir
-            }
-            (Type::Float, Type::Int, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
-                ir.extend([$op_2, IRItem::CvtFI]);
-                ir
-            }
-            (Type::Float, Type::Int, OpType::Float) => {
-                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
-                ir.push_back($op_2);
-                ir
-            }
-            (Type::Float, Type::Float, OpType::Int) => {
-                let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
-                ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
-                ir.extend([$op_2, IRItem::CvtFI]);
-                ir
-            }
-            (Type::Float, Type::Float, OpType::Float) => {
+            (Type::Int, Type::Float, OpType::Float)
+            | (Type::Float, Type::Int, OpType::Float)
+            | (Type::Float, Type::Float, OpType::Float) => {
                 let mut ir = $ir_generator.expr_rvalue($l, OpType::Float);
                 ir.extend($ir_generator.expr_rvalue($r, OpType::Float));
                 ir.push_back($op_2);
