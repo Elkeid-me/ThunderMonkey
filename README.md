@@ -239,7 +239,8 @@ Chollima 没有一元运算指令，因为：
 
 #### 条件与无条件转移指令
 
-- `br <label_1>, <label_2>`：从栈顶弹出一个整数，与 0 比较。如果与 0 比较不等，则转移至 `label_1`，否则转移至 `label_2`
+- `br_z <label>`：从栈顶弹出一个整数，与 0 比较。如果与 0 比较相等，则转移至 `label`，否则执行下一条指令。
+- `br_nz <label>`：从栈顶弹出一个整数，与 0 比较。如果与 0 比较不等，则转移至 `label`，否则执行下一条指令。
 - `jmp <label>`：无条件转移至 `label`。
 
 #### 函数调用指令
@@ -264,10 +265,6 @@ Chollima 没有一元运算指令，因为：
 ### 标签
 
 - `label_<label>`：IR 中的标签。
-
-### 其它指令
-
-- `start_time <lineno>` 和 `stop_time <lineno>`：专用于 `starttime()` 和 `stoptime()` 函数的 Chollima 指令。
 
 以上“整数”指 32 位补码表示的有符号整数，“浮点数”指 IEEE-754 Binary 32 浮点数。Chollima 假定目标机器的指针宽度为 32 位。除此之外，Chollima 没有更多约束。
 

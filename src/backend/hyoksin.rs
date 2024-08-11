@@ -66,246 +66,234 @@ fn function(
         asm.add_label(format!("__zvezda_label_{handler}"));
     }
 
-    asm.add_inst(Push(R7));
-    asm.add_inst(Push(R14));
-    asm.add_inst(Mov(R7, R13));
+    asm.add_inst(Push(vec![R7, LR]));
+    asm.add_inst(Mov(R7, SP));
     asm.add_inst(Mov32(R0, stack_size));
-    asm.add_inst(Add(R13, R0, R13));
+    asm.add_inst(Add(SP, R0, SP));
     for ir in code {
         match ir {
             IRItem::AddInt => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Add(R0, R0, R1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Add(R0, R1, R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::SubInt => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Sub(R0, R0, R1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Sub(R0, R1, R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::MulInt => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Mul(R0, R0, R1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Mul(R0, R1, R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::DivInt => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_idiv".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
 
             IRItem::AddFloat => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_fadd".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::SubFloat => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_fsub".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::MulFloat => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_fmul".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::DivFloat => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_fdiv".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
 
             IRItem::Mod => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_idivmod".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(R1));
+                asm.add_inst(Push(vec![R0]));
             }
 
             IRItem::Sll => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Lsl(R0, R0, R1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Lsl(R0, R1, R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::Slr => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Lsr(R0, R0, R1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Lsr(R0, R1, R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::Sar => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Asr(R0, R0, R1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Asr(R0, R1, R0));
+                asm.add_inst(Push(vec![R0]));
             }
 
             IRItem::And => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(And(R0, R0, R1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(And(R0, R1, R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::Or => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Orr(R0, R0, R1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Orr(R0, R1, R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::Xor => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Eor(R0, R0, R1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Eor(R0, R1, R0));
+                asm.add_inst(Push(vec![R0]));
             }
 
             IRItem::EqInt => {
                 asm.add_inst(Eor(R2, R2, R2));
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Cmp(R0, R1));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Cmp(R1, R0));
                 asm.add_inst(MovImmEq(R2, 1));
-                asm.add_inst(Push(R2));
+                asm.add_inst(Push(vec![R2]));
             }
             IRItem::NeInt => {
                 asm.add_inst(Eor(R2, R2, R2));
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Cmp(R0, R1));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Cmp(R1, R0));
                 asm.add_inst(MovImmNe(R2, 1));
-                asm.add_inst(Push(R2));
+                asm.add_inst(Push(vec![R2]));
             }
             IRItem::LeInt => {
                 asm.add_inst(Eor(R2, R2, R2));
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Cmp(R0, R1));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Cmp(R1, R0));
                 asm.add_inst(MovImmLe(R2, 1));
-                asm.add_inst(Push(R2));
+                asm.add_inst(Push(vec![R2]));
             }
             IRItem::LtInt => {
                 asm.add_inst(Eor(R2, R2, R2));
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Cmp(R0, R1));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Cmp(R1, R0));
                 asm.add_inst(MovImmLt(R2, 1));
-                asm.add_inst(Push(R2));
+                asm.add_inst(Push(vec![R2]));
             }
             IRItem::GeInt => {
                 asm.add_inst(Eor(R2, R2, R2));
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Cmp(R0, R1));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Cmp(R1, R0));
                 asm.add_inst(MovImmGe(R2, 1));
-                asm.add_inst(Push(R2));
+                asm.add_inst(Push(vec![R2]));
             }
             IRItem::GtInt => {
                 asm.add_inst(Eor(R2, R2, R2));
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Cmp(R0, R1));
+                asm.add_inst(Pop(vec![R0, R1]));
+                asm.add_inst(Cmp(R1, R0));
                 asm.add_inst(MovImmGt(R2, 1));
-                asm.add_inst(Push(R2));
+                asm.add_inst(Push(vec![R2]));
             }
 
             IRItem::EqFloat => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_fcmpeq".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::NeFloat => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_fcmpeq".to_string()));
                 asm.add_inst(Blx(R2));
                 asm.add_inst(EorImm(R0, R0, 1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::LeFloat => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_fcmple".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::LtFloat => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_fcmplt".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::GeFloat => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_fcmpge".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::GtFloat => {
-                asm.add_inst(Pop(R1));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_fcmpgt".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
 
             IRItem::PushFloat(f) => {
                 asm.add_inst(Mov32(R0, f.to_bits() as i32));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::PushInt(i) => {
                 asm.add_inst(Mov32(R0, *i));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
 
             IRItem::PopWords(words) => {
                 for _i in 0..*words {
-                    asm.add_inst(Pop(R0));
+                    asm.add_inst(Pop(vec![R0]));
                 }
             }
             IRItem::Double => {
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Push(R0));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Ldr(R0, SP));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::CvtIF => {
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R1, "__aeabi_i2f".to_string()));
                 asm.add_inst(Blx(R1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::CvtFI => {
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R1, "__aeabi_f2iz".to_string()));
                 asm.add_inst(Blx(R1));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
-            IRItem::Br { then, or_else } => {
+            IRItem::BrZ { then } => {
                 asm.add_inst(Mov32Label(R2, format!("__zvezda_label_{then}")));
-                asm.add_inst(Mov32Label(R3, format!("__zvezda_label_{or_else}")));
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R0]));
+                asm.add_inst(MovImm(R1, 0));
+                asm.add_inst(Cmp(R0, R1));
+                asm.add_inst(BxEq(R2));
+            }
+            IRItem::BrNz { then } => {
+                asm.add_inst(Mov32Label(R2, format!("__zvezda_label_{then}")));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(MovImm(R1, 0));
                 asm.add_inst(Cmp(R0, R1));
                 asm.add_inst(BxNe(R2));
-                asm.add_inst(Bx(R3));
             }
             IRItem::Jmp { label } => {
                 asm.add_inst(Mov32Label(R0, format!("__zvezda_label_{label}")));
@@ -321,63 +309,70 @@ fn function(
                     "getch" => asm.add_inst(Mov32Label(R8, format!("getch"))),
                     "getfloat" => asm.add_inst(Mov32Label(R8, format!("getfloat"))),
                     "getarray" => {
-                        asm.add_inst(Pop(R0));
+                        asm.add_inst(Pop(vec![R0]));
                         num_args -= 1;
                         asm.add_inst(Mov32Label(R8, format!("getarray")));
                     }
                     "getfarray" => {
-                        asm.add_inst(Pop(R0));
+                        asm.add_inst(Pop(vec![R0]));
                         num_args -= 1;
                         asm.add_inst(Mov32Label(R8, format!("getfarray")));
                     }
                     "putint" => {
-                        asm.add_inst(Pop(R0));
+                        asm.add_inst(Pop(vec![R0]));
                         num_args -= 1;
                         asm.add_inst(Mov32Label(R8, format!("putint")));
                     }
                     "putch" => {
-                        asm.add_inst(Pop(R0));
+                        asm.add_inst(Pop(vec![R0]));
                         num_args -= 1;
                         asm.add_inst(Mov32Label(R8, format!("putch")));
                     }
                     "putfloat" => {
-                        asm.add_inst(VPop(S0));
+                        asm.add_inst(VPop(vec![S0]));
                         num_args -= 1;
                         asm.add_inst(Mov32Label(R8, format!("putfloat")));
                     }
                     "putarray" => {
-                        asm.add_inst(Pop(R0));
-                        asm.add_inst(Pop(R1));
+                        asm.add_inst(Pop(vec![R0, R1]));
                         num_args -= 2;
                         asm.add_inst(Mov32Label(R8, format!("putarray")));
                     }
                     "putfarray" => {
-                        asm.add_inst(Pop(R0));
-                        asm.add_inst(Pop(R1));
+                        asm.add_inst(Pop(vec![R0, R1]));
                         num_args -= 2;
                         asm.add_inst(Mov32Label(R8, format!("putfarray")));
+                    }
+                    "_sysy_starttime" => {
+                        asm.add_inst(Pop(vec![R0]));
+                        num_args -= 1;
+                        asm.add_inst(Mov32Label(R8, format!("_sysy_starttime")));
+                    }
+                    "_sysy_stoptime" => {
+                        asm.add_inst(Pop(vec![R0]));
+                        num_args -= 1;
+                        asm.add_inst(Mov32Label(R8, format!("_sysy_stoptime")));
                     }
                     "putf" => asm.add_inst(Mov32Label(R8, format!("putf"))),
                     _ => asm.add_inst(Mov32Label(R8, format!("__zvezda_label_{function}"))),
                 }
                 asm.add_inst(Blx(R8));
                 asm.add_inst(Mov32(R3, num_args as i32 * 4));
-                asm.add_inst(Add(R13, R3, R13));
+                asm.add_inst(Add(SP, R3, SP));
                 match ir {
-                    IRItem::CallFloat { function: _, num_args: _ } => asm.add_inst(VPush(S0)),
-                    IRItem::CallInt { function: _, num_args: _ } => asm.add_inst(Push(R0)),
+                    IRItem::CallFloat { function: _, num_args: _ } => asm.add_inst(VPush(vec![S0])),
+                    IRItem::CallInt { function: _, num_args: _ } => asm.add_inst(Push(vec![R0])),
                     IRItem::CallVoid { function: _, num_args: _ } => (),
                     _ => unreachable!(),
                 }
             }
             IRItem::Load => {
-                asm.add_inst(Pop(R0));
+                asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Ldr(R0, R0));
-                asm.add_inst(Push(R0));
+                asm.add_inst(Push(vec![R0]));
             }
             IRItem::Store => {
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Pop(R1));
+                asm.add_inst(Pop(vec![R0, R1]));
                 asm.add_inst(Sdr(R0, R1));
             }
             IRItem::LoadAddr { var } => {
@@ -385,36 +380,23 @@ fn function(
                     let offset = c.get(var).unwrap();
                     asm.add_inst(Mov32(R0, *offset));
                     asm.add_inst(Add(R0, R0, R7));
-                    asm.add_inst(Push(R0));
+                    asm.add_inst(Push(vec![R0]));
                 } else {
                     asm.add_inst(Mov32Label(R0, format!("__zvezda_label_{var}")));
-                    asm.add_inst(Push(R0));
+                    asm.add_inst(Push(vec![R0]));
                 }
             }
             IRItem::RetFloat => {
-                asm.add_inst(VPop(S0));
-                asm.add_inst(Mov(R13, R7));
-                asm.add_inst(Pop(R14));
-                asm.add_inst(Pop(R7));
-                asm.add_inst(Bx(R14));
+                asm.add_inst(VPop(vec![S0]));
+                asm.add_inst(Mov(SP, R7));
+                asm.add_inst(Pop(vec![R7, PC]));
             }
             IRItem::RetInt => {
-                asm.add_inst(Pop(R0));
-                asm.add_inst(Mov(R13, R7));
-                asm.add_inst(Pop(R14));
-                asm.add_inst(Pop(R7));
-                asm.add_inst(Bx(R14));
+                asm.add_inst(Pop(vec![R0]));
+                asm.add_inst(Mov(SP, R7));
+                asm.add_inst(Pop(vec![R7, PC]));
             }
             IRItem::Label { addr } => asm.add_label(format!("__zvezda_label_{addr}")),
-            IRItem::StartTime { lineno } => {
-                asm.add_inst(Mov32(R0, *lineno));
-                asm.add_inst(Mov32Label(R1, "_sysy_starttime".to_string()));
-            }
-            IRItem::StopTime { lineno } => {
-                asm.add_inst(Mov32(R0, *lineno));
-                asm.add_inst(Mov32Label(R1, "_sysy_stoptime".to_string()));
-                asm.add_inst(Blx(R1));
-            }
         }
     }
     asm

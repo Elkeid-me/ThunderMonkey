@@ -335,12 +335,24 @@ impl ASTBuilder {
                 let mut iter = expr.into_inner();
                 let id = iter.next().unwrap().as_str();
                 match id {
-                    "starttime" => {
-                        Ok(Expr { inner: StartTime(line_col.0 as i32), ty: Void, category: RValue, is_const: false })
-                    }
-                    "stoptime" => {
-                        Ok(Expr { inner: StopTime(line_col.0 as i32), ty: Void, category: RValue, is_const: false })
-                    }
+                    "starttime" => Ok(Expr {
+                        inner: Func(
+                            *self.table.first().unwrap().get("_sysy_starttime").unwrap(),
+                            vec![Expr { inner: Integer(line_col.0 as i32), ty: Int, category: RValue, is_const: true }],
+                        ),
+                        ty: Void,
+                        category: RValue,
+                        is_const: false,
+                    }),
+                    "stoptime" => Ok(Expr {
+                        inner: Func(
+                            *self.table.first().unwrap().get("_sysy_stoptime").unwrap(),
+                            vec![Expr { inner: Integer(line_col.0 as i32), ty: Int, category: RValue, is_const: true }],
+                        ),
+                        ty: Void,
+                        category: RValue,
+                        is_const: false,
+                    }),
                     _ => match self.search(id) {
                         Some(handler) => match self.symbol_table.get(&handler).unwrap() {
                             Definition { init: _, ty: Function(ret_ty, arg_tys), .. } => {

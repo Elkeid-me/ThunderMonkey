@@ -610,8 +610,8 @@ impl ASTBuilder {
             (Function(Box::new(Void), vec![Int, Pointer(Box::new(Int), Vec::new())]), "putarray".to_string()),
             (Function(Box::new(Void), vec![Int, Pointer(Box::new(Float), Vec::new())]), "putfarray".to_string()),
             (Function(Box::new(Void), vec![VAList]), "putf".to_string()),
-            (Function(Box::new(Void), Vec::new()), "starttime".to_string()),
-            (Function(Box::new(Void), Vec::new()), "stoptime".to_string()),
+            (Function(Box::new(Void), vec![Int]), "_sysy_starttime".to_string()),
+            (Function(Box::new(Void), vec![Int]), "_sysy_stoptime".to_string()),
         ]
         .into_iter()
         .map(|(ty, id)| self.insert_definition(id, ty, None));
