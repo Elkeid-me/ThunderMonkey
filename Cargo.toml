@@ -12,3 +12,4 @@ rustc-hash = "^2.0"
 
 [features]
 debug_output = []
+hvfp = []

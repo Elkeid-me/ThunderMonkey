@@ -96,32 +96,56 @@ fn function(
             }
 
             IRItem::AddFloat => {
-                asm.add_inst(Pop(vec![R1]));
-                asm.add_inst(Pop(vec![R0]));
-                asm.add_inst(Mov32Label(R2, "__aeabi_fadd".to_string()));
-                asm.add_inst(Blx(R2));
-                asm.add_inst(Push(vec![R0]));
+                if cfg!(feature = "hvfp") {
+                    asm.add_inst(VPop(vec![S0, S1]));
+                    asm.add_inst(VAddF32(S0, S1, S0));
+                    asm.add_inst(VPush(vec![S0]));
+                } else {
+                    asm.add_inst(Pop(vec![R1]));
+                    asm.add_inst(Pop(vec![R0]));
+                    asm.add_inst(Mov32Label(R2, "__aeabi_fadd".to_string()));
+                    asm.add_inst(Blx(R2));
+                    asm.add_inst(Push(vec![R0]));
+                }
             }
             IRItem::SubFloat => {
-                asm.add_inst(Pop(vec![R1]));
-                asm.add_inst(Pop(vec![R0]));
-                asm.add_inst(Mov32Label(R2, "__aeabi_fsub".to_string()));
-                asm.add_inst(Blx(R2));
-                asm.add_inst(Push(vec![R0]));
+                if cfg!(feature = "hvfp") {
+                    asm.add_inst(VPop(vec![S0, S1]));
+                    asm.add_inst(VSubF32(S0, S1, S0));
+                    asm.add_inst(VPush(vec![S0]));
+                } else {
+                    asm.add_inst(Pop(vec![R1]));
+                    asm.add_inst(Pop(vec![R0]));
+                    asm.add_inst(Mov32Label(R2, "__aeabi_fsub".to_string()));
+                    asm.add_inst(Blx(R2));
+                    asm.add_inst(Push(vec![R0]));
+                }
             }
             IRItem::MulFloat => {
-                asm.add_inst(Pop(vec![R1]));
-                asm.add_inst(Pop(vec![R0]));
-                asm.add_inst(Mov32Label(R2, "__aeabi_fmul".to_string()));
-                asm.add_inst(Blx(R2));
-                asm.add_inst(Push(vec![R0]));
+                if cfg!(feature = "hvfp") {
+                    asm.add_inst(VPop(vec![S0, S1]));
+                    asm.add_inst(VMulF32(S0, S1, S0));
+                    asm.add_inst(VPush(vec![S0]));
+                } else {
+                    asm.add_inst(Pop(vec![R1]));
+                    asm.add_inst(Pop(vec![R0]));
+                    asm.add_inst(Mov32Label(R2, "__aeabi_fmul".to_string()));
+                    asm.add_inst(Blx(R2));
+                    asm.add_inst(Push(vec![R0]));
+                }
             }
             IRItem::DivFloat => {
-                asm.add_inst(Pop(vec![R1]));
-                asm.add_inst(Pop(vec![R0]));
-                asm.add_inst(Mov32Label(R2, "__aeabi_fdiv".to_string()));
-                asm.add_inst(Blx(R2));
-                asm.add_inst(Push(vec![R0]));
+                if cfg!(feature = "hvfp") {
+                    asm.add_inst(VPop(vec![S0, S1]));
+                    asm.add_inst(VDivF32(S0, S1, S0));
+                    asm.add_inst(VPush(vec![S0]));
+                } else {
+                    asm.add_inst(Pop(vec![R1]));
+                    asm.add_inst(Pop(vec![R0]));
+                    asm.add_inst(Mov32Label(R2, "__aeabi_fdiv".to_string()));
+                    asm.add_inst(Blx(R2));
+                    asm.add_inst(Push(vec![R0]));
+                }
             }
 
             IRItem::Mod => {
