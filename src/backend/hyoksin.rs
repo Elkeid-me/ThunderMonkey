@@ -307,15 +307,13 @@ fn function(
             IRItem::BrZ { then } => {
                 asm.add_inst(Mov32Label(R2, format!("__zvezda_label_{then}")));
                 asm.add_inst(Pop(vec![R0]));
-                asm.add_inst(MovImm(R1, 0));
-                asm.add_inst(Cmp(R0, R1));
+                asm.add_inst(AndS(R0, R0, R0));
                 asm.add_inst(BxEq(R2));
             }
             IRItem::BrNz { then } => {
                 asm.add_inst(Mov32Label(R2, format!("__zvezda_label_{then}")));
                 asm.add_inst(Pop(vec![R0]));
-                asm.add_inst(MovImm(R1, 0));
-                asm.add_inst(Cmp(R0, R1));
+                asm.add_inst(AndS(R0, R0, R0));
                 asm.add_inst(BxNe(R2));
             }
             IRItem::Jmp { label } => {
