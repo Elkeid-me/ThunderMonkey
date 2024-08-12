@@ -25,11 +25,15 @@ pub enum Inst {
     VPush(Vec<FPR>),
     VPop(Vec<FPR>),
 
+    B(String),
+    BEq(String),
+    BNe(String),
+
     Blx(GPR),
     Bx(GPR),
-
     BxEq(GPR),
     BxNe(GPR),
+
     Cmp(GPR, GPR),
 
     Ldr(GPR, GPR),
@@ -248,12 +252,16 @@ impl Display for Inst {
                 write!(f, "vpop {{{}}}", list.as_slice().join(", "))
             }
 
+            Self::B(label) => write!(f, "b {label}"),
+            Self::BEq(label) => write!(f, "beq {label}"),
+            Self::BNe(label) => write!(f, "bne {label}"),
+
             Self::Blx(reg) => write!(f, "blx {reg}"),
             Self::Bx(reg) => write!(f, "bx {reg}"),
             Self::BxEq(reg) => write!(f, "bxeq {reg}"),
             Self::BxNe(reg) => write!(f, "bxne {reg}"),
 
-            Self::Mov32(reg, imm) => write!(f, "mov32 {reg}, {}", *imm as u32),
+            Self::Mov32(reg, imm) => write!(f, "mov32 {reg}, {imm}"),
             Self::Mov32Label(reg, label) => write!(f, "mov32 {reg}, {label}"),
             Self::Mov(rd, rs) => write!(f, "mov {rd}, {rs}"),
             Self::MovImmEq(reg, imm) => write!(f, "moveq {reg}, #{imm}"),

@@ -310,9 +310,8 @@ Chollima 没有一元运算指令，因为：
 Hyoksin 对 Chollima 模式匹配。例如，`add_int` 会被编译为：
 
 ```asm
-pop {r1}
-pop {r0}
-add r0, r0, r1
+pop {r0, r1}
+add r0, r1, r0
 push {r0}
 ```
 
@@ -324,6 +323,14 @@ pop {r0}
 mov32 r2, __aeabi_fadd
 blx r2
 push {r0}
+```
+
+如果启用 `hardware_vfp` 特性，`add_float` 会被编译为：
+
+```asm
+vpop {s0, s1}
+vadd.f32 s0, s1, s0
+vpush {s0}
 ```
 
 这里，`mov32` 是一个汇编宏，其定义为：

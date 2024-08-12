@@ -95,7 +95,7 @@ fn function(
             }
 
             IRItem::AddFloat => {
-                if cfg!(feature = "hvfp") {
+                if cfg!(feature = "hardware_vfp") {
                     asm.add_inst(VPop(vec![S0, S1]));
                     asm.add_inst(VAddF32(S0, S1, S0));
                     asm.add_inst(VPush(vec![S0]));
@@ -108,7 +108,7 @@ fn function(
                 }
             }
             IRItem::SubFloat => {
-                if cfg!(feature = "hvfp") {
+                if cfg!(feature = "hardware_vfp") {
                     asm.add_inst(VPop(vec![S0, S1]));
                     asm.add_inst(VSubF32(S0, S1, S0));
                     asm.add_inst(VPush(vec![S0]));
@@ -121,7 +121,7 @@ fn function(
                 }
             }
             IRItem::MulFloat => {
-                if cfg!(feature = "hvfp") {
+                if cfg!(feature = "hardware_vfp") {
                     asm.add_inst(VPop(vec![S0, S1]));
                     asm.add_inst(VMulF32(S0, S1, S0));
                     asm.add_inst(VPush(vec![S0]));
@@ -134,7 +134,7 @@ fn function(
                 }
             }
             IRItem::DivFloat => {
-                if cfg!(feature = "hvfp") {
+                if cfg!(feature = "hardware_vfp") {
                     asm.add_inst(VPop(vec![S0, S1]));
                     asm.add_inst(VDivF32(S0, S1, S0));
                     asm.add_inst(VPush(vec![S0]));
@@ -152,7 +152,7 @@ fn function(
                 asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_idivmod".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(vec![R0]));
+                asm.add_inst(Push(vec![R1]));
             }
 
             IRItem::Sll => {

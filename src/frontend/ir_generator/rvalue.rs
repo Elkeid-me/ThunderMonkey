@@ -188,7 +188,6 @@ impl Generator {
                     IRItem::Jmp { label: next },
                     IRItem::Label { addr: zero },
                     IRItem::PushInt(0),
-                    IRItem::Jmp { label: next },
                     IRItem::Label { addr: next },
                 ]);
 
@@ -208,7 +207,6 @@ impl Generator {
                     IRItem::Jmp { label: next },
                     IRItem::Label { addr: zero },
                     IRItem::PushInt(0),
-                    IRItem::Jmp { label: next },
                     IRItem::Label { addr: next },
                 ]);
 

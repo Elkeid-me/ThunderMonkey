@@ -29,7 +29,7 @@ impl Generator {
         ir.extend(block_ir);
         ir.push_back(IRItem::Label { addr: while_label });
         ir.extend(self.expr_rvalue(cond, OpType::Int));
-        ir.push_back(IRItem::BrNz { then: block_label });
+        ir.extend([IRItem::BrNz { then: block_label }, IRItem::Label { addr: while_next_label }]);
         ir
     }
     fn if_statement(
