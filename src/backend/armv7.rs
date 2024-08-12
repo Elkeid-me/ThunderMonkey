@@ -25,11 +25,15 @@ pub enum Inst {
     VPush(Vec<FPR>),
     VPop(Vec<FPR>),
 
+    B(String),
+    BEq(String),
+    BNe(String),
+
     Blx(GPR),
     Bx(GPR),
-
     BxEq(GPR),
     BxNe(GPR),
+
     Cmp(GPR, GPR),
 
     Ldr(GPR, GPR),
@@ -247,6 +251,10 @@ impl Display for Inst {
                 let list: Vec<_> = reg_list.iter().map(|reg| format!("{reg}")).collect();
                 write!(f, "vpop {{{}}}", list.as_slice().join(", "))
             }
+
+            Self::B(label) => write!(f, "b {label}"),
+            Self::BEq(label) => write!(f, "beq {label}"),
+            Self::BNe(label) => write!(f, "bne {label}"),
 
             Self::Blx(reg) => write!(f, "blx {reg}"),
             Self::Bx(reg) => write!(f, "bx {reg}"),

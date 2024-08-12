@@ -11,5 +11,6 @@ libc = "^0.2"
 rustc-hash = "^2.0"
 
 [features]
+default = ["hardware_vfp"]
 debug_output = []
-hvfp = []
+hardware_vfp = []
