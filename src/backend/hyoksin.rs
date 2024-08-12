@@ -152,7 +152,7 @@ fn function(
                 asm.add_inst(Pop(vec![R0]));
                 asm.add_inst(Mov32Label(R2, "__aeabi_idivmod".to_string()));
                 asm.add_inst(Blx(R2));
-                asm.add_inst(Push(vec![R0]));
+                asm.add_inst(Push(vec![R1]));
             }
 
             IRItem::Sll => {
