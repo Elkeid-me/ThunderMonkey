@@ -261,7 +261,7 @@ impl Display for Inst {
             Self::BxEq(reg) => write!(f, "bxeq {reg}"),
             Self::BxNe(reg) => write!(f, "bxne {reg}"),
 
-            Self::Mov32(reg, imm) => write!(f, "mov32 {reg}, {}", *imm as u32),
+            Self::Mov32(reg, imm) => write!(f, "mov32 {reg}, {imm}"),
             Self::Mov32Label(reg, label) => write!(f, "mov32 {reg}, {label}"),
             Self::Mov(rd, rs) => write!(f, "mov {rd}, {rs}"),
             Self::MovImmEq(reg, imm) => write!(f, "moveq {reg}, #{imm}"),
