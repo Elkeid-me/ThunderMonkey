@@ -40,8 +40,8 @@ struct Generator {
     counter: RefCell<Counter>,
     ast: Vec<Handler>,
     symbol_table: HashMap<Handler, Definition>,
-    context: HashMap<Handler, usize>,
-    global_items: HashMap<Handler, GlobalItem>,
+    context: RefCell<HashMap<Handler, usize>>,
+    global_items: RefCell<HashMap<Handler, GlobalItem>>,
 }
 
 impl Generator {
@@ -51,19 +51,16 @@ impl Generator {
             counter: RefCell::new(Counter { value: -1 }),
             ast,
             symbol_table,
-            context: HashMap::default(),
-            global_items: HashMap::default(),
+            context: RefCell::new(HashMap::default()),
+            global_items: RefCell::new(HashMap::default()),
         }
     }
 
     fn generator(mut self) -> IR {
-        unsafe {
-            let ast = (&self.ast) as *const Vec<u32>;
-            for &handler in (&*ast).iter() {
-                self.global_def(handler);
-            }
+        for &handler in std::mem::take(&mut self.ast).iter() {
+            self.global_def(handler);
         }
-        IR { symbol_table: self.symbol_table, ir: self.global_items }
+        IR { symbol_table: self.symbol_table, ir: self.global_items.take() }
     }
 
     pub(self) fn array_elem_helper(&self, array: Handler, subscripts: &[Expr]) -> VecDeque<IRItem> {

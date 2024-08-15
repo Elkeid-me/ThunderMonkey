@@ -22,8 +22,8 @@ use std::collections::VecDeque;
 use std::vec;
 
 impl Generator {
-    fn fun_def(&mut self, handler: Handler, block: &Block, arg_handlers: &[Handler], ret_ty: &Type) {
-        self.context.clear();
+    fn fun_def(&self, handler: Handler, block: &Block, arg_handlers: &[Handler], ret_ty: &Type) {
+        self.context.borrow_mut().clear();
 
         let mut ir = self.block(block, 0, 0, ret_ty).0;
 
@@ -31,16 +31,16 @@ impl Generator {
             ir.push_back(IRItem::RetInt);
         }
         let v =
-            GlobalItem::Function { code: ir, context: std::mem::take(&mut self.context), arg_handlers: arg_handlers.to_vec() };
+            GlobalItem::Function { code: ir, context: self.context.take(), arg_handlers: arg_handlers.to_vec() };
 
-        self.global_items.insert(handler, v);
+        self.global_items.borrow_mut().insert(handler, v);
     }
 
     pub fn global_def(&mut self, handler: Handler) {
         let Definition { init, ty, id: _, is_global: _, is_arg: _ } = self.symbol_table.get(&handler).unwrap();
         match (ty, init) {
             (Type::Int | Type::Float, None) => {
-                self.global_items.insert(handler, GlobalItem::Variable { words: 1, init: None });
+                self.global_items.borrow_mut().insert(handler, GlobalItem::Variable { words: 1, init: None });
             }
             (Type::Int, Some(Init::Expr(expr))) => {
                 let bits = match &expr.inner {
@@ -48,7 +48,7 @@ impl Generator {
                     ExprInner::Floating(f) => vec![(*f as i32) as u32],
                     _ => unreachable!(),
                 };
-                self.global_items.insert(handler, GlobalItem::Variable { words: 1, init: Some(bits) });
+                self.global_items.borrow_mut().insert(handler, GlobalItem::Variable { words: 1, init: Some(bits) });
             }
             (Type::Float, Some(Init::Expr(expr))) => {
                 let bits = match &expr.inner {
@@ -56,7 +56,7 @@ impl Generator {
                     ExprInner::Floating(f) => vec![f.to_bits()],
                     _ => unreachable!(),
                 };
-                self.global_items.insert(handler, GlobalItem::Variable { words: 1, init: Some(bits) });
+                self.global_items.borrow_mut().insert(handler, GlobalItem::Variable { words: 1, init: Some(bits) });
             }
             (Type::Float, Some(Init::ConstFloat(_)))
             | (Type::Int, Some(Init::ConstInt(_)))
@@ -65,16 +65,13 @@ impl Generator {
             | (Type::Function(_, _), None) => (),
             (Type::Array(_, lens), None) => {
                 let size = lens.iter().fold(1usize, |i, e| i * e);
-                self.global_items.insert(handler, GlobalItem::Variable { words: size, init: None });
+                self.global_items.borrow_mut().insert(handler, GlobalItem::Variable { words: size, init: None });
             }
             (Type::Array(_, _), Some(Init::ConstList(_))) => self.global_array(handler),
             (Type::Array(_, _), Some(Init::List(_))) => self.global_array(handler),
-            (Type::Function(ret_type, _), Some(Init::Function { block, is_entry: _, arg_handlers })) => unsafe {
-                let p = self as *const Generator;
-                let p = p as *mut Generator;
-                let s = &mut *p;
-                s.fun_def(handler, block, arg_handlers, ret_type);
-            },
+            (Type::Function(ret_type, _), Some(Init::Function { block, is_entry: _, arg_handlers })) => {
+                self.fun_def(handler, block, arg_handlers, ret_type);
+            }
             _ => unreachable!(),
         }
     }
@@ -129,17 +126,19 @@ impl Generator {
         }
     }
 
-    fn global_array(&mut self, handler: Handler) {
+    fn global_array(&self, handler: Handler) {
         let Definition { init, ty, id: _, is_global: _, is_arg: _ } = self.symbol_table.get(&handler).unwrap();
         match (ty, init) {
             (Type::Array(base, lens), Some(Init::ConstList(list))) => {
                 let size = lens.iter().fold(1usize, |i, e| i * e);
                 self.global_items
+                    .borrow_mut()
                     .insert(handler, GlobalItem::Variable { words: size, init: Some(Self::flat_const_list(list, base)) });
             }
             (Type::Array(base, lens), Some(Init::List(list))) => {
                 let size = lens.iter().fold(1usize, |i, e| i * e);
                 self.global_items
+                    .borrow_mut()
                     .insert(handler, GlobalItem::Variable { words: size, init: Some(Self::flat_list(list, base)) });
             }
             _ => unreachable!(),
@@ -155,7 +154,7 @@ impl Generator {
             .collect()
     }
 
-    pub fn def(&mut self, handler: Handler) -> VecDeque<IRItem> {
+    pub fn def(&self, handler: Handler) -> VecDeque<IRItem> {
         let Definition { init, ty, id: _, is_global: _, is_arg: _ } = self.symbol_table.get(&handler).unwrap();
         match (ty, init) {
             (Type::Int, Some(Init::ConstInt(_)))
@@ -163,18 +162,18 @@ impl Generator {
             | (Type::Float, Some(Init::ConstInt(_)))
             | (Type::Float, Some(Init::ConstFloat(_))) => VecDeque::new(),
             (Type::Int, None) | (Type::Float, None) => {
-                self.context.insert(handler, 1);
+                self.context.borrow_mut().insert(handler, 1);
                 VecDeque::new()
             }
             (Type::Int, Some(Init::Expr(expr))) => {
-                self.context.insert(handler, 1);
+                self.context.borrow_mut().insert(handler, 1);
                 let mut ir = VecDeque::from([IRItem::LoadAddr { var: handler }]);
                 ir.extend(self.expr_rvalue(expr, OpType::Int));
                 ir.push_back(IRItem::Store);
                 ir
             }
             (Type::Float, Some(Init::Expr(expr))) => {
-                self.context.insert(handler, 1);
+                self.context.borrow_mut().insert(handler, 1);
                 let mut ir = VecDeque::from([IRItem::LoadAddr { var: handler }]);
                 ir.extend(self.expr_rvalue(expr, OpType::Float));
                 ir.push_back(IRItem::Store);
@@ -182,7 +181,7 @@ impl Generator {
             }
             (Type::Array(_, lens), None) => {
                 let size = lens.iter().fold(1usize, |i, e| i * e);
-                self.context.insert(handler, size);
+                self.context.borrow_mut().insert(handler, size);
                 VecDeque::new()
             }
             (Type::Array(_, _), Some(Init::ConstList(_))) => {
@@ -191,7 +190,7 @@ impl Generator {
             }
             (Type::Array(ty, lens), Some(Init::List(list))) => {
                 let size = lens.iter().fold(1usize, |i, e| i * e);
-                self.context.insert(handler, size);
+                self.context.borrow_mut().insert(handler, size);
                 let exprs = Self::flat_expr_list(list);
                 let expected_ty = match ty.as_ref() {
                     Type::Int => OpType::Int,
