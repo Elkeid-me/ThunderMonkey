@@ -21,7 +21,7 @@ use crate::Handler;
 use std::collections::VecDeque;
 
 impl Generator {
-    fn while_statement(&mut self, cond: &Expr, block: &Block, ret_ty: &Type) -> VecDeque<IRItem> {
+    fn while_statement(&self, cond: &Expr, block: &Block, ret_ty: &Type) -> VecDeque<IRItem> {
         let while_label = self.counter.borrow_mut().get();
         let while_next_label = self.counter.borrow_mut().get();
         let (block_ir, block_label) = self.block(block, while_label, while_next_label, ret_ty);
@@ -33,7 +33,7 @@ impl Generator {
         ir
     }
     fn if_statement(
-        &mut self,
+        &self,
         cond: &Expr,
         then_block: &Block,
         else_block: &Block,
@@ -77,7 +77,7 @@ impl Generator {
     }
 
     pub fn statement(
-        &mut self,
+        &self,
         statement: &Statement,
         while_label: Handler,
         while_next_label: Handler,
@@ -114,7 +114,7 @@ impl Generator {
     }
 
     pub fn block(
-        &mut self,
+        &self,
         block: &Block,
         while_label: Handler,
         while_next_label: Handler,
