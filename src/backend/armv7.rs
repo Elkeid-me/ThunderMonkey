@@ -18,6 +18,7 @@
 use std::collections::VecDeque;
 use std::fmt::{Display, Formatter, Result};
 
+#[allow(unused)]
 #[derive(Clone)]
 pub enum Inst {
     Push(Vec<GPR>),
