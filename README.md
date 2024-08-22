@@ -10,9 +10,9 @@ ThunderMonkey 编译器由三部分构成：
 
 除 Rust 标准库外，我们使用的库还有：
 
-- [`pest`](https://github.com/pest-parser/pest)，一个基于解析表达式文法的解析器生成器。同时依赖 `pest_derive`。Apache-2.0 或 MIT licenses 许可证。
-- [`libc`](https://github.com/rust-lang/libc)，Rust 官方提供的与 C 互操作的工具库。Apache-2.0 或 MIT licenses 许可证。
-- [`rustc_hash`](https://github.com/rust-lang/rustc-hash)，Rust 官方提供的一种哈希表，相比 Rust 标准库的哈希算法，`rustc_hash` 更加快速，但抗碰撞能力稍弱。Apache-2.0 或 MIT licenses 许可证。
+- [`pest`](https://github.com/pest-parser/pest)，一个基于解析表达式文法的解析器生成器。同时依赖 `pest_derive`。Apache-2.0 或 MIT 许可证。
+- [`libc`](https://github.com/rust-lang/libc)，Rust 官方提供的与 C 互操作的工具库。Apache-2.0 或 MIT 许可证。
+- [`rustc_hash`](https://github.com/rust-lang/rustc-hash)，Rust 官方提供的一种哈希表，相比 Rust 标准库的哈希算法，`rustc_hash` 更加快速，但抗碰撞能力稍弱。Apache-2.0 或 MIT 许可证。
 - [`genawaiter`](https://github.com/whatisaphone/genawaiter)，无栈协程库。Apache-2.0 或 MIT 许可证。
 
 ThunderMonkey 以 GPLv3 许可证开源。
