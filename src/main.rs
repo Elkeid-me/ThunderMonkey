@@ -71,7 +71,7 @@ fn compile() -> Result<(), Box<dyn std::error::Error>> {
         Mode::Optimization => println!("使用优化模式"),
     }
 
-    write!(f, ".macro mov32, reg, val\n    movw \\reg, #:lower16:\\val\n    movt \\reg, #:upper16:\\val\n.endm\n")?;
+    write!(f, ".macro mov32 reg, val\n    movw \\reg, #:lower16:\\val\n    movt \\reg, #:upper16:\\val\n.endm\n")?;
 
     for i in asm {
         write!(f, "{i}")?;
