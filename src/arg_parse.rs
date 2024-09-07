@@ -35,22 +35,19 @@ pub fn parse(args: Args) -> Result<ParsedArgs, String> {
     let mut assem_output_flag = false;
     let mut output = String::new();
     let mut input = String::new();
-    loop {
-        match args.next() {
-            Some(s) => match s.as_str() {
-                "-o" => output_flag = true,
-                "-O1" => mode = Mode::Optimization,
-                "-S" => assem_output_flag = true,
-                _ => {
-                    if output_flag {
-                        output = s;
-                        output_flag = false;
-                    } else {
-                        input = s;
-                    }
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "-o" => output_flag = true,
+            "-O1" => mode = Mode::Optimization,
+            "-S" => assem_output_flag = true,
+            _ => {
+                if output_flag {
+                    output = arg;
+                    output_flag = false;
+                } else {
+                    input = arg;
                 }
-            },
-            None => break,
+            }
         }
     }
     if !assem_output_flag {

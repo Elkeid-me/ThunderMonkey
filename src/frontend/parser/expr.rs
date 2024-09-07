@@ -30,7 +30,7 @@ fn parse_integer(expr: Pair<Rule>) -> Result<Expr, CompilerError> {
             Ok(val) => Ok(Expr { inner: Integer(val), ty: Int, category: RValue, is_const: true }),
             Err(_) => Err(CompilerError { error_number: ParseIntError, line_col: expr.line_col() }),
         },
-        Rule::integer_oct => match i32::from_str_radix(&expr.as_str(), 8) {
+        Rule::integer_oct => match i32::from_str_radix(expr.as_str(), 8) {
             Ok(val) => Ok(Expr { inner: Integer(val), ty: Int, category: RValue, is_const: true }),
             Err(_) => Err(CompilerError { error_number: ParseIntError, line_col: expr.line_col() }),
         },

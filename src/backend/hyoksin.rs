@@ -37,7 +37,7 @@ fn function(
     handler: Handler,
     code: &VecDeque<IRItem>,
     context: &HashMap<Handler, usize>,
-    arg_handlers: &Vec<Handler>,
+    arg_handlers: &[Handler],
     symbol_table: &HashMap<Handler, Definition>,
 ) -> ARM {
     let mut c = HashMap::default();
@@ -326,55 +326,55 @@ fn function(
                 let mut num_args = *num_args;
                 let id = symbol_table.get(function).unwrap().id.as_str();
                 match id {
-                    "getint" => asm.add_inst(Mov32Label(R8, format!("getint"))),
-                    "getch" => asm.add_inst(Mov32Label(R8, format!("getch"))),
-                    "getfloat" => asm.add_inst(Mov32Label(R8, format!("getfloat"))),
+                    "getint" => asm.add_inst(Mov32Label(R8, "getint".to_string())),
+                    "getch" => asm.add_inst(Mov32Label(R8, "getch".to_string())),
+                    "getfloat" => asm.add_inst(Mov32Label(R8, "getfloat".to_string())),
                     "getarray" => {
                         asm.add_inst(Pop(vec![R0]));
                         num_args -= 1;
-                        asm.add_inst(Mov32Label(R8, format!("getarray")));
+                        asm.add_inst(Mov32Label(R8, "getarray".to_string()));
                     }
                     "getfarray" => {
                         asm.add_inst(Pop(vec![R0]));
                         num_args -= 1;
-                        asm.add_inst(Mov32Label(R8, format!("getfarray")));
+                        asm.add_inst(Mov32Label(R8, "getfarray".to_string()));
                     }
                     "putint" => {
                         asm.add_inst(Pop(vec![R0]));
                         num_args -= 1;
-                        asm.add_inst(Mov32Label(R8, format!("putint")));
+                        asm.add_inst(Mov32Label(R8, "putint".to_string()));
                     }
                     "putch" => {
                         asm.add_inst(Pop(vec![R0]));
                         num_args -= 1;
-                        asm.add_inst(Mov32Label(R8, format!("putch")));
+                        asm.add_inst(Mov32Label(R8, "putch".to_string()));
                     }
                     "putfloat" => {
                         asm.add_inst(VPop(vec![S0]));
                         num_args -= 1;
-                        asm.add_inst(Mov32Label(R8, format!("putfloat")));
+                        asm.add_inst(Mov32Label(R8, "putfloat".to_string()));
                     }
                     "putarray" => {
                         asm.add_inst(Pop(vec![R0, R1]));
                         num_args -= 2;
-                        asm.add_inst(Mov32Label(R8, format!("putarray")));
+                        asm.add_inst(Mov32Label(R8, "putarray".to_string()));
                     }
                     "putfarray" => {
                         asm.add_inst(Pop(vec![R0, R1]));
                         num_args -= 2;
-                        asm.add_inst(Mov32Label(R8, format!("putfarray")));
+                        asm.add_inst(Mov32Label(R8, "putfarray".to_string()));
                     }
                     "_sysy_starttime" => {
                         asm.add_inst(Pop(vec![R0]));
                         num_args -= 1;
-                        asm.add_inst(Mov32Label(R8, format!("_sysy_starttime")));
+                        asm.add_inst(Mov32Label(R8, "_sysy_starttime".to_string()));
                     }
                     "_sysy_stoptime" => {
                         asm.add_inst(Pop(vec![R0]));
                         num_args -= 1;
-                        asm.add_inst(Mov32Label(R8, format!("_sysy_stoptime")));
+                        asm.add_inst(Mov32Label(R8, "_sysy_stoptime".to_string()));
                     }
-                    "putf" => asm.add_inst(Mov32Label(R8, format!("putf"))),
+                    "putf" => asm.add_inst(Mov32Label(R8, "putf".to_string())),
                     _ => asm.add_inst(Mov32Label(R8, format!("__zvezda_label_{function}"))),
                 }
                 asm.add_inst(Blx(R8));
