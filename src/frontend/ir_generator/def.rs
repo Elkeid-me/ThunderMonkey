@@ -64,7 +64,7 @@ impl Generator {
             | (Type::Float, Some(Init::ConstInt(_)))
             | (Type::Function(_, _), None) => (),
             (Type::Array(_, lens), None) => {
-                let size = lens.iter().fold(1usize, |i, e| i * e);
+                let size = lens.iter().product();
                 self.global_items.borrow_mut().insert(handler, GlobalItem::Variable { words: size, init: None });
             }
             (Type::Array(_, _), Some(Init::ConstList(_))) => self.global_array(handler),
@@ -130,13 +130,13 @@ impl Generator {
         let Definition { init, ty, id: _, is_global: _, is_arg: _ } = self.symbol_table.get(&handler).unwrap();
         match (ty, init) {
             (Type::Array(base, lens), Some(Init::ConstList(list))) => {
-                let size = lens.iter().fold(1usize, |i, e| i * e);
+                let size = lens.iter().product();
                 self.global_items
                     .borrow_mut()
                     .insert(handler, GlobalItem::Variable { words: size, init: Some(Self::flat_const_list(list, base)) });
             }
             (Type::Array(base, lens), Some(Init::List(list))) => {
-                let size = lens.iter().fold(1usize, |i, e| i * e);
+                let size = lens.iter().product();
                 self.global_items
                     .borrow_mut()
                     .insert(handler, GlobalItem::Variable { words: size, init: Some(Self::flat_list(list, base)) });
@@ -180,7 +180,7 @@ impl Generator {
                 ir
             }
             (Type::Array(_, lens), None) => {
-                let size = lens.iter().fold(1usize, |i, e| i * e);
+                let size = lens.iter().product();
                 self.context.borrow_mut().insert(handler, size);
                 VecDeque::new()
             }
@@ -189,7 +189,7 @@ impl Generator {
                 VecDeque::new()
             }
             (Type::Array(ty, lens), Some(Init::List(list))) => {
-                let size = lens.iter().fold(1usize, |i, e| i * e);
+                let size = lens.iter().product();
                 self.context.borrow_mut().insert(handler, size);
                 let exprs = Self::flat_expr_list(list);
                 let expected_ty = match ty.as_ref() {

@@ -335,7 +335,7 @@ impl Generator {
                 let (ret_ty, arg_tys) = risk!(ty, Type::Function(ret_ty, arg_tys) => (ret_ty.as_ref(), arg_tys.as_slice()));
 
                 let mut ir: VecDeque<_> = args
-                    .into_iter()
+                    .iter()
                     .zip(arg_tys)
                     .rev()
                     .flat_map(|(expr, ty)| {

@@ -122,9 +122,9 @@ impl Generator {
     ) -> (VecDeque<IRItem>, Handler) {
         let label = self.counter.borrow_mut().get();
         let body = block
-            .into_iter()
+            .iter()
             .flat_map(|item| match item {
-                BlockItem::Def(handlers) => handlers.into_iter().flat_map(|handler| self.def(*handler)).collect(),
+                BlockItem::Def(handlers) => handlers.iter().flat_map(|handler| self.def(*handler)).collect(),
                 BlockItem::Block(block) => self.block(block, while_label, while_next_label, ret_ty).0,
                 BlockItem::Statement(stmt) => self.statement(stmt, while_label, while_next_label, ret_ty),
             })

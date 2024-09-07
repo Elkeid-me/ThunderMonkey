@@ -90,7 +90,7 @@ impl Generator {
             _ => unreachable!(),
         };
 
-        ir.extend(subscripts.into_iter().zip(len_prod.into_iter().rev()).flat_map(|(expr, len)| {
+        ir.extend(subscripts.iter().zip(len_prod.into_iter().rev()).flat_map(|(expr, len)| {
             let mut ir = VecDeque::from([IRItem::PushInt(len as i32)]);
             ir.extend(self.expr_rvalue(expr, OpType::Int));
             ir.extend([IRItem::MulInt, IRItem::AddInt]);
