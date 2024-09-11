@@ -52,14 +52,25 @@ macro_rules! assign_helper {
     }};
 }
 
+macro_rules! pre_inc_dec_helper {
+    ($ir_generator: expr, $expr: expr, $op_1: path, $op_2:path) => {{
+        let mut ir = $ir_generator.expr_lvalue($expr);
+        ir.extend([IRItem::Double, IRItem::Load]);
+        match &$expr.ty {
+            Type::Int => ir.extend([IRItem::PushInt(1), $op_1, IRItem::Store]),
+            Type::Float => ir.extend([IRItem::PushFloat(1.0), $op_2, IRItem::Store]),
+            _ => unreachable!(),
+        }
+        ir
+    }};
+}
+
 impl Generator {
     pub fn expr_lvalue(&self, expr: &Expr) -> VecDeque<IRItem> {
         let Expr { inner, ty: _, category: _, is_const: _ } = expr;
         match inner {
-            PostInc(_) => todo!(),
-            PostDec(_) => todo!(),
-            PreInc(_) => todo!(),
-            PreDec(_) => todo!(),
+            PreInc(expr) => pre_inc_dec_helper!(self, expr, IRItem::AddInt, IRItem::AddFloat),
+            PreDec(expr) => pre_inc_dec_helper!(self, expr, IRItem::SubInt, IRItem::SubFloat),
             Assignment(l, r) => {
                 let mut ir = self.expr_lvalue(l);
                 ir.push_back(IRItem::Double);

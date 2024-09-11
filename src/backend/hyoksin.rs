@@ -418,6 +418,11 @@ fn function(
                 asm.add_inst(Pop(vec![R7, PC]));
             }
             IRItem::Label { addr } => asm.add_label(format!("__zvezda_label_{addr}")),
+            IRItem::Xchg => {
+                asm.add_inst(Pop(vec![R1]));
+                asm.add_inst(Pop(vec![R0]));
+                asm.add_inst(Push(vec![R0, R1]));
+            }
         }
     }
     asm

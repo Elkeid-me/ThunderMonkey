@@ -358,14 +358,11 @@ impl ASTBuilder {
                             Definition { init: _, ty: Function(ret_ty, arg_tys), .. } => {
                                 let args = iter.map(|p| self.parse_expr(p)).collect::<Result<Vec<_>, _>>()?;
                                 if arg_tys.len() != args.len() {
-                                    Err(CompilerError { error_number: IncompatibleType(todo!(), todo!()), line_col })
+                                    Err(CompilerError { error_number: IncompatibleType, line_col })
                                 } else {
                                     for (arg, expected_ty) in args.iter().zip(arg_tys) {
                                         if !arg.ty.convertible(expected_ty) {
-                                            return Err(CompilerError {
-                                                error_number: IncompatibleType(arg.ty.clone(), vec![expected_ty.clone()]),
-                                                line_col,
-                                            });
+                                            return Err(CompilerError { error_number: IncompatibleType, line_col });
                                         }
                                     }
                                     Ok(Expr {
@@ -376,9 +373,7 @@ impl ASTBuilder {
                                     })
                                 }
                             }
-                            Definition { .. } => {
-                                Err(CompilerError { error_number: IncompatibleType(todo!(), todo!()), line_col })
-                            }
+                            Definition { .. } => Err(CompilerError { error_number: IncompatibleType, line_col }),
                         },
                         None => Err(CompilerError { error_number: Undefined, line_col }),
                     },
@@ -401,10 +396,7 @@ impl ASTBuilder {
                         Definition { init: _, ty: Array(base, lens), .. } => {
                             self.check_pointer(subscripts, handler, base, &lens[1..])
                         }
-                        Definition { init: _, ty, .. } => Err(CompilerError {
-                            error_number: IncompatibleType(ty.clone(), vec![Array(Box::new(Int), Vec::new())]),
-                            line_col,
-                        }),
+                        Definition { init: _, ty, .. } => Err(CompilerError { error_number: IncompatibleType, line_col }),
                     },
                     None => Err(CompilerError { error_number: Undefined, line_col }),
                 }
@@ -424,7 +416,7 @@ impl ASTBuilder {
     ) -> Result<Expr, CompilerError> {
         for expr in subscripts.iter() {
             if !matches!(expr.ty, Int) {
-                return Err(CompilerError { error_number: IncompatibleType(expr.ty.clone(), vec![Int]), line_col: (0, 0) });
+                return Err(CompilerError { error_number: IncompatibleType, line_col: (0, 0) });
             }
         }
         let subscripts_len = subscripts.len();
@@ -438,10 +430,7 @@ impl ASTBuilder {
             std::cmp::Ordering::Equal => {
                 Ok(Expr { inner: ArrayElem(handler, subscripts), ty: base.clone(), category: LValue, is_const: false })
             }
-            std::cmp::Ordering::Greater => Err(CompilerError {
-                error_number: IncompatibleType(base.clone(), vec![Array(Box::new(Int), Vec::new())]),
-                line_col: (0, 0),
-            }),
+            std::cmp::Ordering::Greater => Err(CompilerError { error_number: IncompatibleType, line_col: (0, 0) }),
         }
     }
 }
