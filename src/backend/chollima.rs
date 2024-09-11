@@ -122,6 +122,8 @@ pub enum IRItem {
     Label {
         addr: Handler,
     },
+
+    Xchg,
 }
 
 impl std::fmt::Display for IRItem {
@@ -183,6 +185,8 @@ impl std::fmt::Display for IRItem {
             IRItem::LoadAddr { var } => write!(f, "load_addr .V{var}"),
 
             IRItem::Label { addr } => write!(f, "label_{addr}"),
+
+            IRItem::Xchg => write!(f, "xchg"),
         }
     }
 }

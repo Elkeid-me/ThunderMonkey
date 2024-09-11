@@ -29,13 +29,12 @@ pub struct ParsedArgs {
 }
 
 pub fn parse(args: Args) -> Result<ParsedArgs, String> {
-    let mut args = args.skip(1);
     let mut mode = Mode::Debug;
     let mut output_flag = false;
     let mut assem_output_flag = false;
     let mut output = String::new();
     let mut input = String::new();
-    while let Some(arg) = args.next() {
+    for arg in args.skip(1) {
         match arg.as_str() {
             "-o" => output_flag = true,
             "-O1" => mode = Mode::Optimization,

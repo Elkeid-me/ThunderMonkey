@@ -20,6 +20,40 @@ use crate::frontend::{ast::Expr, ast::ExprInner::*, ty::Type};
 use crate::{backend::chollima::*, risk};
 use std::collections::VecDeque;
 
+macro_rules! post_inc_dec_helper {
+    ($ir_generator: expr, $expr: expr, $op_1: path, $op_2:path, $expected_ty: expr) => {{
+        let mut ir = $ir_generator.expr_lvalue($expr);
+        ir.extend([IRItem::Double, IRItem::Load, IRItem::Xchg, IRItem::Double, IRItem::Load]);
+        match (&$expr.ty, $expected_ty) {
+            (Type::Int, OpType::Int) => ir.extend([IRItem::PushInt(1), $op_1, IRItem::Store]),
+            (Type::Int, OpType::Float) => ir.extend([IRItem::PushInt(1), $op_1, IRItem::Store, IRItem::CvtIF]),
+            (Type::Float, OpType::Int) => ir.extend([IRItem::PushFloat(1.0), $op_2, IRItem::Store, IRItem::CvtFI]),
+            (Type::Float, OpType::Float) => ir.extend([IRItem::PushFloat(1.0), $op_2, IRItem::Store]),
+            _ => unreachable!(),
+        }
+        ir
+    }};
+}
+
+macro_rules! pre_inc_dec_helper {
+    ($ir_generator: expr, $expr: expr, $op_1: path, $op_2:path, $expected_ty: expr) => {{
+        let mut ir = $ir_generator.expr_lvalue($expr);
+        ir.extend([IRItem::Double, IRItem::Double, IRItem::Load]);
+        match (&$expr.ty, $expected_ty) {
+            (Type::Int, OpType::Int) => ir.extend([IRItem::PushInt(1), $op_1, IRItem::Store, IRItem::Load]),
+            (Type::Int, OpType::Float) => {
+                ir.extend([IRItem::PushInt(1), $op_1, IRItem::Store, IRItem::Load, IRItem::CvtIF])
+            }
+            (Type::Float, OpType::Int) => {
+                ir.extend([IRItem::PushFloat(1.0), $op_2, IRItem::Store, IRItem::Load, IRItem::CvtFI])
+            }
+            (Type::Float, OpType::Float) => ir.extend([IRItem::PushFloat(1.0), $op_2, IRItem::Store, IRItem::Load]),
+            _ => unreachable!(),
+        }
+        ir
+    }};
+}
+
 macro_rules! int_arith_helper {
     ($ir_generator: expr, $l: expr, $r: expr, $op: path, $expected_ty: expr) => {{
         let l_ty = &$l.ty;
@@ -277,10 +311,10 @@ impl Generator {
                 },
                 expected_ty,
             ),
-            PostInc(_) => todo!(),
-            PostDec(_) => todo!(),
-            PreInc(_) => todo!(),
-            PreDec(_) => todo!(),
+            PostInc(expr) => post_inc_dec_helper!(self, expr, IRItem::AddInt, IRItem::AddFloat, expected_ty),
+            PostDec(expr) => post_inc_dec_helper!(self, expr, IRItem::SubInt, IRItem::SubFloat, expected_ty),
+            PreInc(expr) => pre_inc_dec_helper!(self, expr, IRItem::AddInt, IRItem::AddFloat, expected_ty),
+            PreDec(expr) => pre_inc_dec_helper!(self, expr, IRItem::SubInt, IRItem::SubFloat, expected_ty),
             Assignment(l, r) => {
                 let mut ir = self.expr_lvalue(l);
                 ir.push_back(IRItem::Double);

@@ -14,7 +14,7 @@ pub enum ErrorNumber {
     ContinueNotInLoop,
     Undefined,
     Redefinition,
-    IncompatibleType(Type, Vec<Type>),
+    IncompatibleType,
     InitListTooLong,
     ListShouldBeScalar,
 }
