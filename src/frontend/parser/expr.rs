@@ -396,7 +396,7 @@ impl ASTBuilder {
                         Definition { init: _, ty: Array(base, lens), .. } => {
                             self.check_pointer(subscripts, handler, base, &lens[1..])
                         }
-                        Definition { init: _, ty, .. } => Err(CompilerError { error_number: IncompatibleType, line_col }),
+                        Definition { init: _, ty: _, .. } => Err(CompilerError { error_number: IncompatibleType, line_col }),
                     },
                     None => Err(CompilerError { error_number: Undefined, line_col }),
                 }

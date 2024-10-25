@@ -78,9 +78,7 @@ impl InitListTrait for ConstInitListItem {
             (Expr { inner: Integer(i), .. }, Float) => Ok(Self::Float(i as f32)),
             (Expr { inner: Floating(f), .. }, Float) => Ok(Self::Float(f)),
             (Expr { inner: _, ty: Int | Float, .. }, _) => Err(CompilerError { error_number: NotConst, line_col }),
-            (Expr { inner: _, ty, .. }, _) => {
-                Err(CompilerError { error_number: IncompatibleType(ty.clone(), vec![Int, Float]), line_col })
-            }
+            (Expr { inner: _, ty: _, .. }, _) => Err(CompilerError { error_number: IncompatibleType, line_col }),
         }
     }
     fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self> {
@@ -127,9 +125,7 @@ impl InitListTrait for InitListItem {
             }
             (Expr { inner, ty: Int, category, is_const }, _) => Ok(Self::Expr(Expr { inner, ty: Int, category, is_const })),
             (Expr { inner, ty: Float, category, is_const }, _) => Ok(Self::Expr(Expr { inner, ty: Float, category, is_const })),
-            (Expr { inner: _, ty, .. }, _) => {
-                Err(CompilerError { error_number: IncompatibleType(ty.clone(), vec![Int, Float]), line_col })
-            }
+            (Expr { inner: _, ty: _, .. }, _) => Err(CompilerError { error_number: IncompatibleType, line_col }),
         }
     }
     fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self> {
@@ -332,8 +328,6 @@ impl ASTBuilder {
                 Some(*l)
             })
             .collect();
-        // let (list, _) = self.parse_init_list_impl::<T>(init_list, &len_prod, ty)?;
-        // Ok(list)
         Ok(T::add_empty_list(lengths, self.parse_init_list_impl::<T>(init_list, &len_prod, ty)?.0))
     }
 
@@ -390,10 +384,7 @@ impl ASTBuilder {
                                 let line_col = expr.line_col();
                                 let expr = self.parse_expr(expr)?;
                                 if !matches!(&expr.ty, Int | Float) {
-                                    return Err(CompilerError {
-                                        error_number: IncompatibleType(expr.ty, vec![Int, Float]),
-                                        line_col,
-                                    });
+                                    return Err(CompilerError { error_number: IncompatibleType, line_col });
                                 }
                                 self.insert_definition(id, ty.clone(), Some(Init::Expr(expr)))
                             }
@@ -467,11 +458,11 @@ impl ASTBuilder {
                 (None, Void) => Ok(Statement::Return(None)),
                 (Some(Ok(expr)), Int | Float) => match &expr.ty {
                     Int | Float => Ok(Statement::Return(Some(expr))),
-                    _ => Err(CompilerError { error_number: IncompatibleType(expr.ty, vec![Int, Float]), line_col: (0, 0) }),
+                    _ => Err(CompilerError { error_number: IncompatibleType, line_col: (0, 0) }),
                 },
                 (Some(Err(err)), _) => Err(err),
-                (Some(Ok(Expr { inner: _, ty, .. })), Void) => {
-                    Err(CompilerError { error_number: IncompatibleType(ty, vec![Void]), line_col: (0, 0) })
+                (Some(Ok(Expr { inner: _, ty: _, .. })), Void) => {
+                    Err(CompilerError { error_number: IncompatibleType, line_col: (0, 0) })
                 }
                 _ => unreachable!(),
             },
