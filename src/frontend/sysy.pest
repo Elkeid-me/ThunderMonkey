@@ -25,7 +25,8 @@ WHITESPACE = _{ " " | "\t" | NEWLINE }
 
 translation_unit = _{ SOI ~ global_item+ ~ EOI }
 
-identifier  = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+CJK         =  { HAN | HIRAGANA | KATAKANA | HANGUL | BOPOMOFO }
+identifier  = @{ (ASCII_ALPHA | "_" | CJK) ~ (ASCII_ALPHANUMERIC | "_" | CJK)* }
 global_item = _{ all_definitions | func_decl ~ ";" | func_def }
 
 func_def          =  { func_dec ~ block }
@@ -37,13 +38,13 @@ parameter_def     = _{ ptr_parameter | var_parameter }
 ptr_parameter         =  { non_void_type ~ identifier ~ "[" ~ "]" ~ array_lengths? }
 var_parameter         =  { non_void_type ~ identifier }
 
-int_keyword      = @{ "int" ~ !(ASCII_ALPHANUMERIC | "_") }
-float_keyword    = @{ "float" ~ !(ASCII_ALPHANUMERIC | "_") }
-void_keyword     = @{ "void" ~ !(ASCII_ALPHANUMERIC | "_") }
-const_keyword    = @{ "const" ~ !(ASCII_ALPHANUMERIC | "_")}
-return_keyword   = @{ "return" ~ !(ASCII_ALPHANUMERIC | "_") }
-continue_keyword = @{ "continue" ~ !(ASCII_ALPHANUMERIC | "_") }
-break_keyword    = @{ "break" ~ !(ASCII_ALPHANUMERIC | "_") }
+int_keyword      = @{ "整型" ~ !(ASCII_ALPHANUMERIC | "_") }
+float_keyword    = @{ "浮点" ~ !(ASCII_ALPHANUMERIC | "_") }
+void_keyword     = @{ "空" ~ !(ASCII_ALPHANUMERIC | "_") }
+const_keyword    = @{ "常量" ~ !(ASCII_ALPHANUMERIC | "_")}
+return_keyword   = @{ "返回" ~ !(ASCII_ALPHANUMERIC | "_") }
+continue_keyword = @{ "继续" ~ !(ASCII_ALPHANUMERIC | "_") }
+break_keyword    = @{ "终止" ~ !(ASCII_ALPHANUMERIC | "_") }
 
 type          = _{ int_keyword | float_keyword | void_keyword }
 non_void_type = _{ int_keyword | float_keyword }
@@ -135,8 +136,8 @@ string_literal = @{ "\"" ~ ((!"\"" ~ ANY) | ("\\\""))* ~ "\"" }
 putf_manhole   =  { "putf" ~ "(" ~ string_literal ~ ("," ~ expression)* ~ ")" }
 
 return_statement = { return_keyword ~ expression? }
-while_statement  = { "while" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) }
-if_statement     = { "if" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) ~ ("else" ~ (non_block_block_item | block))? }
+while_statement  = { "当" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) }
+if_statement     = { "如果" ~ "(" ~ expression ~ ")" ~ (non_block_block_item | block) ~ ("否则" ~ (non_block_block_item | block))? }
 
 integer_hex = @{ ("0x" | "0X") ~ ASCII_HEX_DIGIT+ }
 integer_dec = @{ ASCII_NONZERO_DIGIT ~ ASCII_DIGIT* }
