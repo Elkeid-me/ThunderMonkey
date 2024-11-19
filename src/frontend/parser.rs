@@ -552,7 +552,7 @@ impl ASTBuilder {
     fn parse_function(&mut self, func: Pair<Rule>) -> Result<Vec<Handler>, CompilerError> {
         let mut iter = func.into_inner();
         let (id, ret_type, para_type, para_id) = self.parse_signature(iter.next().unwrap())?;
-        let is_entry = matches!(id.as_str(), "main");
+        let is_entry = id.as_str() == "main";
         let handler = match iter.next() {
             Some(i) => {
                 self.insert_definition(id.clone(), Function(Box::new(ret_type.clone()), para_type.clone()), None)?;
