@@ -69,7 +69,7 @@ pub enum Inst {
     VDivF32(FPR, FPR, FPR),
 }
 
-#[allow(unused)]
+#[allow(unused, clippy::upper_case_acronyms)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum GPR {
     R0,
@@ -90,7 +90,7 @@ pub enum GPR {
     PC,
 }
 
-#[allow(unused)]
+#[allow(unused, clippy::upper_case_acronyms)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum FPR {
     S0,
@@ -143,6 +143,7 @@ pub enum ARMItem {
     Directive(Directive),
 }
 
+#[allow(clippy::upper_case_acronyms)]
 pub type ARM = VecDeque<ARMItem>;
 
 impl Display for GPR {
