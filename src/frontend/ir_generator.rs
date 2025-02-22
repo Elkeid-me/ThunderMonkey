@@ -22,7 +22,7 @@ mod rvalue;
 mod statement;
 
 use super::{ast::*, ty::Type};
-use crate::{backend::chollima::*, Handler, HashMap};
+use crate::{Handler, HashMap, backend::chollima::*};
 use std::{cell::RefCell, collections::VecDeque};
 
 struct Counter {

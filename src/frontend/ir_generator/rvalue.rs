@@ -41,9 +41,7 @@ macro_rules! pre_inc_dec_helper {
         ir.extend([IRItem::Double, IRItem::Double, IRItem::Load]);
         match (&$expr.ty, $expected_ty) {
             (Type::Int, OpType::Int) => ir.extend([IRItem::PushInt(1), $op_1, IRItem::Store, IRItem::Load]),
-            (Type::Int, OpType::Float) => {
-                ir.extend([IRItem::PushInt(1), $op_1, IRItem::Store, IRItem::Load, IRItem::CvtIF])
-            }
+            (Type::Int, OpType::Float) => ir.extend([IRItem::PushInt(1), $op_1, IRItem::Store, IRItem::Load, IRItem::CvtIF]),
             (Type::Float, OpType::Int) => {
                 ir.extend([IRItem::PushFloat(1.0), $op_2, IRItem::Store, IRItem::Load, IRItem::CvtFI])
             }

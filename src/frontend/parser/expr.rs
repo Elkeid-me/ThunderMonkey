@@ -16,10 +16,10 @@
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::super::error::{CompilerError, ErrorNumber::*};
+use crate::Handler;
 use crate::frontend::ast::{ExprCategory::*, ExprInner::*, *};
 use crate::frontend::parser::{ASTBuilder, Rule};
 use crate::frontend::ty::Type::{self, *};
-use crate::Handler;
 use core::ptr::null_mut;
 use libc::strtof;
 use pest::iterators::Pair;
