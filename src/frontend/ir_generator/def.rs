@@ -16,8 +16,8 @@
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::{Generator, GlobalItem, IRItem, OpType};
-use crate::frontend::{ast::*, ty::Type};
 use crate::Handler;
+use crate::frontend::{ast::*, ty::Type};
 use std::collections::VecDeque;
 use std::vec;
 
@@ -30,8 +30,7 @@ impl Generator {
         if !matches!(ir.back(), Some(IRItem::RetInt | IRItem::RetFloat)) {
             ir.push_back(IRItem::RetInt);
         }
-        let v =
-            GlobalItem::Function { code: ir, context: self.context.take(), arg_handlers: arg_handlers.to_vec() };
+        let v = GlobalItem::Function { code: ir, context: self.context.take(), arg_handlers: arg_handlers.to_vec() };
 
         self.global_items.borrow_mut().insert(handler, v);
     }

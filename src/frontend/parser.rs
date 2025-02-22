@@ -22,10 +22,10 @@ use std::iter::repeat;
 use super::ast::{ExprCategory::*, ExprInner::*, *};
 use super::error::{CompilerError, ErrorNumber::*};
 use super::ty::Type::{self, *};
-use crate::{risk, Handler, HashMap, HashSet};
+use crate::{Handler, HashMap, HashSet, risk};
 use pest::pratt_parser::Assoc::{Left, Right};
 use pest::pratt_parser::{Op, PrattParser};
-use pest::{iterators::Pair, Parser};
+use pest::{Parser, iterators::Pair};
 use pest_derive::Parser;
 
 #[derive(Parser)]

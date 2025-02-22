@@ -16,8 +16,8 @@
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::{Generator, IRItem, OpType};
-use crate::frontend::{ast::*, ty::Type};
 use crate::Handler;
+use crate::frontend::{ast::*, ty::Type};
 use std::collections::VecDeque;
 
 impl Generator {

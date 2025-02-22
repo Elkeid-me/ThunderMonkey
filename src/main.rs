@@ -23,7 +23,7 @@ mod preprocessor;
 use arg_parse::{Mode, ParsedArgs};
 use backend::chollima::IR;
 use preprocessor::preprocess;
-use std::fs::{read_to_string, File};
+use std::fs::{File, read_to_string};
 use std::io::Write;
 
 type Handler = u32;
@@ -82,7 +82,7 @@ fn compile() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(target_os = "linux")]
 fn set_stack() {
     unsafe {
-        use libc::{rlim_t, rlimit, setrlimit, RLIMIT_STACK};
+        use libc::{RLIMIT_STACK, rlim_t, rlimit, setrlimit};
         let mut limit = rlimit { rlim_cur: (256 * 1024 * 1024) as rlim_t, rlim_max: (256 * 1024 * 1024) as rlim_t };
         setrlimit(RLIMIT_STACK, &mut limit as *mut rlimit);
     }

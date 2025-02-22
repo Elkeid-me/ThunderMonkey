@@ -23,7 +23,6 @@ pub mod ty;
 
 use crate::backend::chollima::IR;
 
-
 pub fn generator_ir(src: &str) -> Result<IR, Box<dyn std::error::Error>> {
     let translation_unit = parser::parse(src)?;
     Ok(ir_generator::generator_ir(translation_unit))
