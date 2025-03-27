@@ -15,13 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with ThunderMonkey.  If not, see <http://www.gnu.org/licenses/>.
 
-mod arg_parse;
 mod backend;
 mod frontend;
 mod preprocessor;
 
-use arg_parse::{Mode, ParsedArgs};
 use backend::chollima::IR;
+use clap::Parser;
 use preprocessor::preprocess;
 use std::fs::{File, read_to_string};
 use std::io::Write;
@@ -41,10 +40,33 @@ macro_rules! risk {
     };
 }
 
+/// ThunderMonkey：ARMv7 SysY 编译器
+#[allow(non_snake_case)]
+#[derive(Parser)]
+#[command(version)]
+pub struct Args {
+    /// 指定输出为汇编，无效果
+    #[arg(short)]
+    S: bool,
+    #[arg(short, default_value_t = false)]
+    O1: bool,
+    /// 指定输出文件名。
+    #[arg(short, long)]
+    output: std::path::PathBuf,
+    input: std::path::PathBuf,
+}
+
 fn compile() -> Result<(), Box<dyn std::error::Error>> {
-    let ParsedArgs { mode, input, output } = arg_parse::parse(std::env::args())?;
+    pub enum Mode {
+        Debug,
+        Optimization,
+    }
+
+    let args = Args::parse();
+    let mode = if args.O1 { Mode::Optimization } else { Mode::Debug };
+    let input = args.input;
+    let output = args.output;
     let code = preprocess(read_to_string(input)?);
-    // let code = read_to_string(input)?;
     let ir = frontend::generator_ir(&code)?;
 
     if cfg!(feature = "debug_output") {
