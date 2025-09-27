@@ -21,17 +21,17 @@ use crate::frontend::ast::Definition;
 use crate::{Handler, HashMap};
 use std::collections::VecDeque;
 
-///  .......
-/// +-------+
-/// | arg 1 |
-/// +-------+
-/// | arg 0 |
-/// +-------+
-/// |  lr   |
-/// +-------+
-/// |  r7   |
-/// +-------+ <- bp
-///  .......
+//  .......
+// +-------+
+// | arg 1 |
+// +-------+
+// | arg 0 |
+// +-------+
+// |  lr   |
+// +-------+
+// |  r7   |
+// +-------+ <- bp
+//  .......
 
 fn function(
     handler: Handler,

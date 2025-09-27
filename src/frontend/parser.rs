@@ -17,7 +17,7 @@
 
 mod expr;
 
-use std::iter::repeat;
+use std::iter::repeat_n;
 
 use super::ast::{ExprCategory::*, ExprInner::*, *};
 use super::error::{CompilerError, ErrorNumber::*};
@@ -87,7 +87,7 @@ impl InitListTrait for ConstInitListItem {
     fn generate_empty_list(len: &[usize]) -> Self {
         match len.len() {
             0 => Self::Int(0),
-            _ => Self::new_list(repeat(Self::generate_empty_list(&len[1..])).take(len[0]).collect()),
+            _ => Self::new_list(repeat_n(Self::generate_empty_list(&len[1..]), len[0]).collect()),
         }
     }
     fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self> {
@@ -99,7 +99,7 @@ impl InitListTrait for ConstInitListItem {
                 Self::ConstInitList(list) => Self::ConstInitList(Box::new(Self::add_empty_list(&len[1..], *list))),
                 i => i,
             })
-            .chain(repeat(empty_list).take(empty_list_n))
+            .chain(repeat_n(empty_list, empty_list_n))
             .collect()
     }
 }
@@ -134,7 +134,7 @@ impl InitListTrait for InitListItem {
     fn generate_empty_list(len: &[usize]) -> Self {
         match len.len() {
             0 => Self::Expr(Expr { inner: Integer(0), ty: Int, category: RValue, is_const: true }),
-            _ => Self::new_list(repeat(Self::generate_empty_list(&len[1..])).take(len[0]).collect()),
+            _ => Self::new_list(repeat_n(Self::generate_empty_list(&len[1..]), len[0]).collect()),
         }
     }
     fn add_empty_list(len: &[usize], init_list: Vec<Self>) -> Vec<Self> {
@@ -146,7 +146,7 @@ impl InitListTrait for InitListItem {
                 Self::InitList(list) => Self::InitList(Box::new(Self::add_empty_list(&len[1..], *list))),
                 expr => expr,
             })
-            .chain(repeat(empty_list).take(empty_list_n))
+            .chain(repeat_n(empty_list, empty_list_n))
             .collect()
     }
 }
@@ -270,7 +270,7 @@ impl ASTBuilder {
         for ele in init_list.into_inner() {
             match ele.as_rule() {
                 Rule::initializer_list => {
-                    if len_prod.len() == 1 || sum % len_prod[0] != 0 {
+                    if len_prod.len() == 1 || !sum.is_multiple_of(len_prod[0]) {
                         return Err(CompilerError { error_number: ListShouldBeScalar, line_col: ele.line_col() });
                     }
                     //   对于 `int lint[1][14][51][4]`，计算一个列表：`L = {4, 204, 2856, 2856}`，这个列表给出了每一层的大小.
@@ -286,7 +286,7 @@ impl ASTBuilder {
 
                     //   对于 `int lint[1][14][51][4]`，rev_depth == 3 时，意味着 init_list 对应 int[14][51][4]
                     // 需要 `get_last` 0 次
-                    let rev_depth = len_prod.iter().position(|prod| sum % prod != 0).unwrap_or(len_prod.len() - 1);
+                    let rev_depth = len_prod.iter().position(|prod| !sum.is_multiple_of(*prod)).unwrap_or(len_prod.len() - 1);
                     let depth = len_prod.len() - rev_depth - 1;
                     let (l, s) = self.parse_init_list_impl(ele, &len_prod[0..rev_depth], ty)?;
                     let v_ref = (0..depth).fold(&mut v, |state, _| {
@@ -300,7 +300,7 @@ impl ASTBuilder {
                 }
                 Rule::expression => {
                     let v_ref = len_prod.iter().rev().skip(1).fold(&mut v, |state, i| {
-                        if state.is_empty() || sum % i == 0 {
+                        if state.is_empty() || sum.is_multiple_of(*i) {
                             state.push(T::new_list(Vec::new()));
                         }
                         T::get_last(state)
