@@ -78,7 +78,7 @@ impl InitListTrait for ConstInitListItem {
             (Expr { inner: Integer(i), .. }, Float) => Ok(Self::Float(i as f32)),
             (Expr { inner: Floating(f), .. }, Float) => Ok(Self::Float(f)),
             (Expr { inner: _, ty: Int | Float, .. }, _) => Err(CompilerError { error_number: NotConst, line_col }),
-            (Expr { inner: _, ty: _, .. }, _) => Err(CompilerError { error_number: IncompatibleType, line_col }),
+            (Expr { .. }, _) => Err(CompilerError { error_number: IncompatibleType, line_col }),
         }
     }
     fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self> {
@@ -125,7 +125,7 @@ impl InitListTrait for InitListItem {
             }
             (Expr { inner, ty: Int, category, is_const }, _) => Ok(Self::Expr(Expr { inner, ty: Int, category, is_const })),
             (Expr { inner, ty: Float, category, is_const }, _) => Ok(Self::Expr(Expr { inner, ty: Float, category, is_const })),
-            (Expr { inner: _, ty: _, .. }, _) => Err(CompilerError { error_number: IncompatibleType, line_col }),
+            (Expr { .. }, _) => Err(CompilerError { error_number: IncompatibleType, line_col }),
         }
     }
     fn get_last(v: &mut Vec<Self>) -> &mut Vec<Self> {
@@ -461,7 +461,7 @@ impl ASTBuilder {
                     _ => Err(CompilerError { error_number: IncompatibleType, line_col: (0, 0) }),
                 },
                 (Some(Err(err)), _) => Err(err),
-                (Some(Ok(Expr { inner: _, ty: _, .. })), Void) => {
+                (Some(Ok(Expr { .. })), Void) => {
                     Err(CompilerError { error_number: IncompatibleType, line_col: (0, 0) })
                 }
                 _ => unreachable!(),
