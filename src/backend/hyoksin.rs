@@ -55,7 +55,7 @@ fn function(
     let mut asm = ARM::new();
     asm.add_directive(Directive::Text);
 
-    let is_entry = symbol_table.get(&handler).unwrap().id.as_str() == "main";
+    let is_entry = matches!(symbol_table.get(&handler).unwrap().id.as_str(), "主" | "六");
 
     if is_entry {
         asm.add_directive(Directive::Global("main".to_string()));
@@ -375,7 +375,7 @@ fn function(
                         asm.add_inst(Mov32Label(R8, "_sysy_stoptime".to_string()));
                     }
                     "putf" => asm.add_inst(Mov32Label(R8, "putf".to_string())),
-                    "main" => asm.add_inst(Mov32Label(R8, "main".to_string())),
+                    "主" | "六" => asm.add_inst(Mov32Label(R8, "main".to_string())),
                     _ => asm.add_inst(Mov32Label(R8, format!("__zvezda_label_{function}"))),
                 }
                 asm.add_inst(Blx(R8));
